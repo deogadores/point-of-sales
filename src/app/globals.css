@@ -6,6 +6,7 @@
   html,
   body {
     height: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -42,6 +43,15 @@
 
   .field {
     @apply mt-1 w-full rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100;
+  }
+
+  /* Hide scrollbars (still scrollable) */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
 

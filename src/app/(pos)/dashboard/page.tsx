@@ -34,7 +34,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="card">
           <div className="text-sm font-semibold">Top products</div>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
             <table className="w-full min-w-[480px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
           <p className="mt-1 text-xs text-slate-500">
             Stock is computed as sum of stock movements minus sales.
           </p>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
             <table className="w-full min-w-[480px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>

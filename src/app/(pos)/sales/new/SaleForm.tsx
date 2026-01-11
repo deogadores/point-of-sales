@@ -52,7 +52,7 @@ export function SaleForm({ products }: { products: Product[] }) {
     <form action={createSaleAction} className="space-y-3">
       <input type="hidden" name="itemsJson" value={itemsJson} />
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto no-scrollbar lg:overflow-x-visible">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="text-left text-xs text-slate-500">
             <tr>

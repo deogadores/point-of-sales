@@ -51,7 +51,7 @@ export default async function UsersPage() {
 
       <div className="card">
         <div className="text-sm font-semibold">Store users</div>
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>

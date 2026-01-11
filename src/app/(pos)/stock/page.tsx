@@ -68,7 +68,7 @@ export default async function StockPage() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="card">
           <div className="text-sm font-semibold">Current stock</div>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
             <table className="w-full min-w-[520px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
@@ -100,7 +100,7 @@ export default async function StockPage() {
 
         <div className="card">
           <div className="text-sm font-semibold">Recent stock movements</div>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
