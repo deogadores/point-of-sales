@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
+import { requireAuth } from "@/lib/auth";
 import { getSaleDetail } from "@/lib/pos";
 
 export const runtime = "nodejs";
@@ -9,15 +10,16 @@ export default async function SaleDetailPage({
 }: {
   params: { id: string };
 }) {
+  const user = await requireAuth();
   const { id } = params;
   const saleId = Number(id);
-  const detail = await getSaleDetail(saleId);
+  const detail = await getSaleDetail(user.storeId, saleId);
 
   if (!detail) {
     return (
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="text-sm font-semibold">Sale not found</div>
-        <Link className="mt-3 inline-block rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50" href="/sales">
+        <Link className="btn btn-ghost mt-3 inline-flex" href="/sales">
           Back to sales
         </Link>
       </div>
@@ -28,14 +30,14 @@ export default async function SaleDetailPage({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm font-semibold">Sale #{sale.id}</div>
             <div className="mt-1 text-xs text-slate-500">{String(sale.sold_at)}</div>
           </div>
           <Link
-            className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            className="btn btn-ghost"
             href="/sales"
           >
             Back to sales
@@ -43,13 +45,13 @@ export default async function SaleDetailPage({
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border bg-slate-50 p-3">
+          <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
             <div className="text-xs font-medium text-slate-500">Total revenue</div>
             <div className="mt-1 text-lg font-semibold">
               {formatMoney(Number(sale.total_revenue))}
             </div>
           </div>
-          <div className="rounded-xl border bg-slate-50 p-3">
+          <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
             <div className="text-xs font-medium text-slate-500">Total profit</div>
             <div className="mt-1 text-lg font-semibold">
               {formatMoney(Number(sale.total_profit))}
@@ -58,7 +60,7 @@ export default async function SaleDetailPage({
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="text-sm font-semibold">Items</div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[920px] text-sm">

@@ -36,6 +36,7 @@ export type UnitRow = {
 
 export type ProductRow = {
   id: number;
+  store_id: number;
   name: string;
   unit_id: number;
   unit_cost_price: number;
@@ -70,51 +71,70 @@ export async function deleteUnit(unitId: number) {
   });
 }
 
-export async function listProductsWithStock(): Promise<ProductRow[]> {
+export async function listProductsWithStock(storeId: number): Promise<ProductRow[]> {
   await ensureSchema();
-  const res = await db.execute(`
-    SELECT
-      p.id,
-      p.name,
-      p.unit_id,
-      p.unit_cost_price,
-      p.unit_sale_price,
-      u.name AS unit_name,
-      u.symbol AS unit_symbol,
-      COALESCE((SELECT SUM(sm.quantity) FROM stock_movements sm WHERE sm.product_id = p.id), 0) AS stock_qty
-    FROM products p
-    JOIN units u ON u.id = p.unit_id
-    ORDER BY p.name ASC;
-  `);
+  const res = await db.execute({
+    sql: `
+      SELECT
+        p.id,
+        p.store_id,
+        p.name,
+        p.unit_id,
+        p.unit_cost_price,
+        p.unit_sale_price,
+        u.name AS unit_name,
+        u.symbol AS unit_symbol,
+        COALESCE(
+          (SELECT SUM(sm.quantity) FROM stock_movements sm WHERE sm.store_id = ? AND sm.product_id = p.id),
+          0
+        ) AS stock_qty
+      FROM products p
+      JOIN units u ON u.id = p.unit_id
+      WHERE p.store_id = ?
+      ORDER BY p.name ASC;
+    `,
+    args: [storeId, storeId]
+  });
   return res.rows as any;
 }
 
-export async function createProduct(input: unknown) {
+export async function createProduct(storeId: number, input: unknown) {
   await ensureSchema();
   const data = ProductSchema.parse(input);
   await db.execute({
     sql: `
-      INSERT INTO products (name, unit_id, unit_cost_price, unit_sale_price)
-      VALUES (?, ?, ?, ?);
+      INSERT INTO products (store_id, name, unit_id, unit_cost_price, unit_sale_price)
+      VALUES (?, ?, ?, ?, ?);
     `,
-    args: [data.name, data.unitId, data.unitCostPrice, data.unitSalePrice]
+    args: [storeId, data.name, data.unitId, data.unitCostPrice, data.unitSalePrice]
   });
 }
 
-export async function addStockMovement(input: unknown) {
+export async function addStockMovement(storeId: number, input: unknown) {
   await ensureSchema();
   const data = StockMovementSchema.parse(input);
   if (!Number.isFinite(data.quantity) || data.quantity === 0) {
     throw new Error("Quantity must be a non-zero number.");
   }
 
+  const pRes = await db.execute({
+    sql: `SELECT id FROM products WHERE id = ? AND store_id = ? LIMIT 1;`,
+    args: [data.productId, storeId]
+  });
+  if (!(pRes.rows as any[])[0]) throw new Error("Invalid product for this store.");
+
   await db.execute({
-    sql: `INSERT INTO stock_movements (product_id, quantity, reason) VALUES (?, ?, ?);`,
-    args: [data.productId, data.quantity, data.reason?.length ? data.reason : null]
+    sql: `INSERT INTO stock_movements (store_id, product_id, quantity, reason) VALUES (?, ?, ?, ?);`,
+    args: [
+      storeId,
+      data.productId,
+      data.quantity,
+      data.reason?.length ? data.reason : null
+    ]
   });
 }
 
-export async function listRecentStockMovements(limit = 25) {
+export async function listRecentStockMovements(storeId: number, limit = 25) {
   await ensureSchema();
   const res = await db.execute({
     sql: `
@@ -128,15 +148,16 @@ export async function listRecentStockMovements(limit = 25) {
       FROM stock_movements sm
       JOIN products p ON p.id = sm.product_id
       JOIN units u ON u.id = p.unit_id
+      WHERE sm.store_id = ?
       ORDER BY sm.created_at DESC, sm.id DESC
       LIMIT ?;
     `,
-    args: [limit]
+    args: [storeId, limit]
   });
   return res.rows as any[];
 }
 
-export async function createSale(input: unknown) {
+export async function createSale(storeId: number, input: unknown) {
   await ensureSchema();
   const data = SaleInputSchema.parse(input);
 
@@ -147,9 +168,9 @@ export async function createSale(input: unknown) {
     sql: `
       SELECT id, name, unit_cost_price, unit_sale_price
       FROM products
-      WHERE id IN (${placeholders});
+      WHERE store_id = ? AND id IN (${placeholders});
     `,
-    args: productIds
+    args: [storeId, ...productIds]
   });
   const products = new Map<number, any>(
     (productsRes.rows as any[]).map((r) => [Number(r.id), r])
@@ -179,8 +200,8 @@ export async function createSale(input: unknown) {
   await db.execute(`BEGIN;`);
   try {
     const saleRes = await db.execute({
-      sql: `INSERT INTO sales (total_revenue, total_profit) VALUES (?, ?) RETURNING id;`,
-      args: [totalRevenue, totalProfit]
+      sql: `INSERT INTO sales (store_id, total_revenue, total_profit) VALUES (?, ?, ?) RETURNING id;`,
+      args: [storeId, totalRevenue, totalProfit]
     });
     const saleId = Number((saleRes.rows as any[])[0]?.id);
     if (!saleId) throw new Error("Failed to create sale.");
@@ -189,10 +210,11 @@ export async function createSale(input: unknown) {
       await db.execute({
         sql: `
           INSERT INTO sale_items (
-            sale_id, product_id, quantity, unit_cost_price, unit_sale_price, line_revenue, line_profit
-          ) VALUES (?, ?, ?, ?, ?, ?, ?);
+            store_id, sale_id, product_id, quantity, unit_cost_price, unit_sale_price, line_revenue, line_profit
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
         `,
         args: [
+          storeId,
           saleId,
           it.productId,
           it.quantity,
@@ -205,8 +227,8 @@ export async function createSale(input: unknown) {
 
       // Stock reduction.
       await db.execute({
-        sql: `INSERT INTO stock_movements (product_id, quantity, reason) VALUES (?, ?, ?);`,
-        args: [it.productId, -it.quantity, `Sale #${saleId}`]
+        sql: `INSERT INTO stock_movements (store_id, product_id, quantity, reason) VALUES (?, ?, ?, ?);`,
+        args: [storeId, it.productId, -it.quantity, `Sale #${saleId}`]
       });
     }
 
@@ -218,42 +240,57 @@ export async function createSale(input: unknown) {
   }
 }
 
-export async function getDashboardStats() {
+export async function getDashboardStats(storeId: number) {
   await ensureSchema();
 
-  const totals = await db.execute(`
-    SELECT
-      COALESCE(SUM(total_revenue), 0) AS revenue,
-      COALESCE(SUM(total_profit), 0) AS profit,
-      COUNT(*) AS sales_count
-    FROM sales;
-  `);
+  const totals = await db.execute({
+    sql: `
+      SELECT
+        COALESCE(SUM(total_revenue), 0) AS revenue,
+        COALESCE(SUM(total_profit), 0) AS profit,
+        COUNT(*) AS sales_count
+      FROM sales
+      WHERE store_id = ?;
+    `,
+    args: [storeId]
+  });
 
-  const topProducts = await db.execute(`
-    SELECT
-      p.id AS product_id,
-      p.name AS product_name,
-      COALESCE(SUM(si.quantity), 0) AS qty_sold,
-      COALESCE(SUM(si.line_revenue), 0) AS revenue,
-      COALESCE(SUM(si.line_profit), 0) AS profit
-    FROM sale_items si
-    JOIN products p ON p.id = si.product_id
-    GROUP BY p.id
-    ORDER BY revenue DESC
-    LIMIT 5;
-  `);
+  const topProducts = await db.execute({
+    sql: `
+      SELECT
+        p.id AS product_id,
+        p.name AS product_name,
+        COALESCE(SUM(si.quantity), 0) AS qty_sold,
+        COALESCE(SUM(si.line_revenue), 0) AS revenue,
+        COALESCE(SUM(si.line_profit), 0) AS profit
+      FROM sale_items si
+      JOIN products p ON p.id = si.product_id
+      WHERE si.store_id = ?
+      GROUP BY p.id
+      ORDER BY revenue DESC
+      LIMIT 5;
+    `,
+    args: [storeId]
+  });
 
-  const lowStock = await db.execute(`
-    SELECT
-      p.id,
-      p.name,
-      u.symbol AS unit_symbol,
-      COALESCE((SELECT SUM(sm.quantity) FROM stock_movements sm WHERE sm.product_id = p.id), 0) AS stock_qty
-    FROM products p
-    JOIN units u ON u.id = p.unit_id
-    ORDER BY stock_qty ASC, p.name ASC
-    LIMIT 8;
-  `);
+  const lowStock = await db.execute({
+    sql: `
+      SELECT
+        p.id,
+        p.name,
+        u.symbol AS unit_symbol,
+        COALESCE(
+          (SELECT SUM(sm.quantity) FROM stock_movements sm WHERE sm.store_id = ? AND sm.product_id = p.id),
+          0
+        ) AS stock_qty
+      FROM products p
+      JOIN units u ON u.id = p.unit_id
+      WHERE p.store_id = ?
+      ORDER BY stock_qty ASC, p.name ASC
+      LIMIT 8;
+    `,
+    args: [storeId, storeId]
+  });
 
   const t0 = (totals.rows as any[])[0] ?? {};
   return {
@@ -265,7 +302,9 @@ export async function getDashboardStats() {
   };
 }
 
-export async function querySales(params: {
+export async function querySales(
+  storeId: number,
+  params: {
   start?: string;
   end?: string;
   productId?: number;
@@ -273,7 +312,7 @@ export async function querySales(params: {
   await ensureSchema();
 
   const where: string[] = [];
-  const args: any[] = [];
+  const args: any[] = [storeId];
 
   if (params.start) {
     where.push(`s.sold_at >= ?`);
@@ -288,7 +327,7 @@ export async function querySales(params: {
     args.push(params.productId);
   }
 
-  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const whereSql = `WHERE s.store_id = ?${where.length ? ` AND ${where.join(" AND ")}` : ""}`;
 
   const res = await db.execute({
     sql: `
@@ -309,12 +348,12 @@ export async function querySales(params: {
   return res.rows as any[];
 }
 
-export async function getSaleDetail(saleId: number) {
+export async function getSaleDetail(storeId: number, saleId: number) {
   await ensureSchema();
 
   const saleRes = await db.execute({
-    sql: `SELECT id, sold_at, total_revenue, total_profit FROM sales WHERE id = ?;`,
-    args: [saleId]
+    sql: `SELECT id, sold_at, total_revenue, total_profit FROM sales WHERE store_id = ? AND id = ?;`,
+    args: [storeId, saleId]
   });
   const sale = (saleRes.rows as any[])[0];
   if (!sale) return null;
@@ -334,10 +373,10 @@ export async function getSaleDetail(saleId: number) {
       FROM sale_items si
       JOIN products p ON p.id = si.product_id
       JOIN units u ON u.id = p.unit_id
-      WHERE si.sale_id = ?
+      WHERE si.store_id = ? AND si.sale_id = ?
       ORDER BY si.id ASC;
     `,
-    args: [saleId]
+    args: [storeId, saleId]
   });
 
   return { sale, items: itemsRes.rows as any[] };

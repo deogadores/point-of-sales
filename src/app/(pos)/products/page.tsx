@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { createProductAction } from "@/app/(pos)/actions";
 import { formatMoney } from "@/lib/format";
+import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, listUnits } from "@/lib/pos";
 
 export const runtime = "nodejs";
 
 export default async function ProductsPage() {
-  const [products, units] = await Promise.all([listProductsWithStock(), listUnits()]);
+  const user = await requireAuth();
+  const [products, units] = await Promise.all([
+    listProductsWithStock(user.storeId),
+    listUnits()
+  ]);
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm font-semibold">Products</div>
@@ -19,7 +24,7 @@ export default async function ProductsPage() {
             </p>
           </div>
           <Link
-            className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            className="btn btn-ghost"
             href="/reference/units"
           >
             Maintain units
@@ -35,7 +40,7 @@ export default async function ProductsPage() {
             <input
               name="name"
               placeholder="e.g. Coffee beans"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               required
             />
           </label>
@@ -44,7 +49,7 @@ export default async function ProductsPage() {
             <div className="text-xs font-medium text-slate-600">Unit</div>
             <select
               name="unitId"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               required
               defaultValue={units[0]?.id ?? ""}
             >
@@ -63,7 +68,7 @@ export default async function ProductsPage() {
               type="number"
               step="0.01"
               min="0"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               required
             />
           </label>
@@ -75,20 +80,20 @@ export default async function ProductsPage() {
               type="number"
               step="0.01"
               min="0"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               required
             />
           </label>
 
           <div className="sm:col-span-6">
-            <button className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white sm:w-auto">
+            <button className="btn btn-primary w-full sm:w-auto">
               Add product
             </button>
           </div>
         </form>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="text-sm font-semibold">Product list</div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[860px] text-sm">

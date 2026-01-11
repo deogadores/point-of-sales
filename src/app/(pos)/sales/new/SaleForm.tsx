@@ -83,7 +83,7 @@ export function SaleForm({ products }: { products: Product[] }) {
                   <tr key={idx} className="border-t">
                     <td className="py-2 pr-3">
                       <select
-                        className="w-full rounded-lg border px-3 py-2 text-sm"
+                        className="field"
                         value={l.productId}
                         onChange={(e) => {
                           const nextId = Number(e.target.value);
@@ -102,7 +102,7 @@ export function SaleForm({ products }: { products: Product[] }) {
                     </td>
                     <td className="py-2 pr-3">
                       <input
-                        className="w-full rounded-lg border px-3 py-2 text-sm"
+                        className="field"
                         type="number"
                         step="0.01"
                         min="0.01"
@@ -122,7 +122,7 @@ export function SaleForm({ products }: { products: Product[] }) {
                     <td className="py-2 pr-3">
                       <button
                         type="button"
-                        className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
+                        className="btn btn-ghost px-3 py-1.5 text-xs"
                         onClick={() => setLines((prev) => prev.filter((_, i) => i !== idx))}
                       >
                         Remove
@@ -139,7 +139,7 @@ export function SaleForm({ products }: { products: Product[] }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
-          className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+          className="btn btn-ghost"
           onClick={() => {
             if (!firstId) return;
             setLines((prev) => [...prev, { productId: firstId, quantity: 1 }]);
@@ -162,7 +162,7 @@ export function SaleForm({ products }: { products: Product[] }) {
       </div>
 
       <button
-        className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white sm:w-auto"
+        className="btn btn-primary w-full sm:w-auto"
         disabled={lines.length === 0}
       >
         Save sale

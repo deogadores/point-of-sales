@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
+import { createUserInStore } from "@/lib/auth";
 import {
   addStockMovement,
   createProduct,
@@ -11,6 +13,7 @@ import {
 } from "@/lib/pos";
 
 export async function createUnitAction(formData: FormData) {
+  await requireAuth();
   await createUnit({
     name: String(formData.get("name") ?? ""),
     symbol: String(formData.get("symbol") ?? "")
@@ -20,6 +23,7 @@ export async function createUnitAction(formData: FormData) {
 }
 
 export async function deleteUnitAction(formData: FormData) {
+  await requireAuth();
   const unitId = Number(formData.get("unitId"));
   await deleteUnit(unitId);
   revalidatePath("/reference/units");
@@ -27,7 +31,8 @@ export async function deleteUnitAction(formData: FormData) {
 }
 
 export async function createProductAction(formData: FormData) {
-  await createProduct({
+  const user = await requireAuth();
+  await createProduct(user.storeId, {
     name: String(formData.get("name") ?? ""),
     unitId: formData.get("unitId"),
     unitCostPrice: formData.get("unitCostPrice"),
@@ -38,7 +43,8 @@ export async function createProductAction(formData: FormData) {
 }
 
 export async function addStockMovementAction(formData: FormData) {
-  await addStockMovement({
+  const user = await requireAuth();
+  await addStockMovement(user.storeId, {
     productId: formData.get("productId"),
     quantity: formData.get("quantity"),
     reason: String(formData.get("reason") ?? "")
@@ -49,13 +55,31 @@ export async function addStockMovementAction(formData: FormData) {
 }
 
 export async function createSaleAction(formData: FormData) {
+  const user = await requireAuth();
   const itemsJson = String(formData.get("itemsJson") ?? "[]");
   const items = JSON.parse(itemsJson);
-  const saleId = await createSale({ items });
+  const saleId = await createSale(user.storeId, { items });
   revalidatePath("/sales");
   revalidatePath("/dashboard");
   revalidatePath("/stock");
   revalidatePath("/products");
   redirect(`/sales/${saleId}`);
+}
+
+export async function createUserAction(formData: FormData) {
+  const user = await requireAuth();
+  if (user.role !== "owner") {
+    throw new Error("Only store owners can create users.");
+  }
+
+  await createUserInStore(user.storeId, {
+    name: String(formData.get("name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+    role: String(formData.get("role") ?? "staff")
+  });
+
+  revalidatePath("/users");
+  redirect("/users");
 }
 

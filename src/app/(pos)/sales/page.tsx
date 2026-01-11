@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
+import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, querySales } from "@/lib/pos";
 
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ export default async function SalesQueryPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  const user = await requireAuth();
   const sp = searchParams;
   const startDate = typeof sp.start === "string" ? sp.start : "";
   const endDate = typeof sp.end === "string" ? sp.end : "";
@@ -24,8 +26,8 @@ export default async function SalesQueryPage({
   const productId = productIdStr ? Number(productIdStr) : undefined;
 
   const [products, rows] = await Promise.all([
-    listProductsWithStock(),
-    querySales({
+    listProductsWithStock(user.storeId),
+    querySales(user.storeId, {
       start: startDate ? toStartOfDay(startDate) : undefined,
       end: endDate ? toEndOfDay(endDate) : undefined,
       productId: productId && Number.isFinite(productId) ? productId : undefined
@@ -34,7 +36,7 @@ export default async function SalesQueryPage({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="text-sm font-semibold">Sales query</div>
         <p className="mt-1 text-xs text-slate-500">
           Filter by date range and optionally by product.
@@ -47,7 +49,7 @@ export default async function SalesQueryPage({
               name="start"
               type="date"
               defaultValue={startDate}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
             />
           </label>
 
@@ -57,7 +59,7 @@ export default async function SalesQueryPage({
               name="end"
               type="date"
               defaultValue={endDate}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
             />
           </label>
 
@@ -66,7 +68,7 @@ export default async function SalesQueryPage({
             <select
               name="productId"
               defaultValue={productIdStr}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
             >
               <option value="">All products</option>
               {products.map((p) => (
@@ -78,18 +80,18 @@ export default async function SalesQueryPage({
           </label>
 
           <div className="sm:col-span-6">
-            <button className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white sm:w-auto">
+            <button className="btn btn-primary w-full sm:w-auto">
               Run query
             </button>
           </div>
         </form>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="flex items-center justify-between gap-2">
           <div className="text-sm font-semibold">Results</div>
           <Link
-            className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            className="btn btn-ghost"
             href="/sales/new"
           >
             New sale
@@ -127,7 +129,7 @@ export default async function SalesQueryPage({
                     <td className="py-2 pr-3">{formatMoney(Number(r.total_profit))}</td>
                     <td className="py-2 pr-3">
                       <Link
-                        className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
+                        className="btn btn-ghost px-3 py-1.5 text-xs"
                         href={`/sales/${r.id}`}
                       >
                         View

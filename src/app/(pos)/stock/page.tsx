@@ -1,17 +1,19 @@
 import { addStockMovementAction } from "@/app/(pos)/actions";
+import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, listRecentStockMovements } from "@/lib/pos";
 
 export const runtime = "nodejs";
 
 export default async function StockPage() {
+  const user = await requireAuth();
   const [products, recent] = await Promise.all([
-    listProductsWithStock(),
-    listRecentStockMovements(25)
+    listProductsWithStock(user.storeId),
+    listRecentStockMovements(user.storeId, 25)
   ]);
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="text-sm font-semibold">Stock adjustment</div>
         <p className="mt-1 text-xs text-slate-500">
           Add positive quantity to receive stock; add negative quantity to remove stock.
@@ -22,7 +24,7 @@ export default async function StockPage() {
             <div className="text-xs font-medium text-slate-600">Product</div>
             <select
               name="productId"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               required
               defaultValue={products[0]?.id ?? ""}
             >
@@ -40,7 +42,7 @@ export default async function StockPage() {
               name="quantity"
               type="number"
               step="0.01"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               placeholder="e.g. 10"
               required
             />
@@ -50,13 +52,13 @@ export default async function StockPage() {
             <div className="text-xs font-medium text-slate-600">Reason</div>
             <input
               name="reason"
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              className="field"
               placeholder="e.g. Supplier delivery"
             />
           </label>
 
           <div className="sm:col-span-6">
-            <button className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white sm:w-auto">
+            <button className="btn btn-primary w-full sm:w-auto">
               Save adjustment
             </button>
           </div>
@@ -64,7 +66,7 @@ export default async function StockPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="card">
           <div className="text-sm font-semibold">Current stock</div>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
@@ -96,7 +98,7 @@ export default async function StockPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="card">
           <div className="text-sm font-semibold">Recent stock movements</div>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">

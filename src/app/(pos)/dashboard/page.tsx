@@ -1,4 +1,5 @@
 import { formatMoney } from "@/lib/format";
+import { requireAuth } from "@/lib/auth";
 import { getDashboardStats } from "@/lib/pos";
 
 export const runtime = "nodejs";
@@ -11,7 +12,7 @@ function StatCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm">
+    <div className="card">
       <div className="text-xs font-medium text-slate-500">{label}</div>
       <div className="mt-1 text-2xl font-semibold">{value}</div>
     </div>
@@ -19,7 +20,8 @@ function StatCard({
 }
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats();
+  const user = await requireAuth();
+  const stats = await getDashboardStats(user.storeId);
 
   return (
     <div className="space-y-4">
@@ -30,7 +32,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="card">
           <div className="text-sm font-semibold">Top products</div>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[480px] text-sm">
@@ -64,7 +66,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="card">
           <div className="text-sm font-semibold">Lowest stock (quick view)</div>
           <p className="mt-1 text-xs text-slate-500">
             Stock is computed as sum of stock movements minus sales.

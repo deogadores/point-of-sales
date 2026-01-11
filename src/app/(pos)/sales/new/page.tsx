@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { SaleForm } from "@/app/(pos)/sales/new/SaleForm";
+import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock } from "@/lib/pos";
 
 export const runtime = "nodejs";
 
 export default async function NewSalePage() {
-  const products = await listProductsWithStock();
+  const user = await requireAuth();
+  const products = await listProductsWithStock(user.storeId);
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm font-semibold">New sale</div>
@@ -18,7 +20,7 @@ export default async function NewSalePage() {
             </p>
           </div>
           <Link
-            className="rounded-lg border px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            className="btn btn-ghost"
             href="/sales"
           >
             Go to sales query
@@ -26,7 +28,7 @@ export default async function NewSalePage() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="card">
         {products.length === 0 ? (
           <div className="text-sm text-slate-700">
             Add a product first, then come back here to record sales.

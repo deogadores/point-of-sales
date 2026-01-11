@@ -1,54 +1,29 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 
-export const runtime = "nodejs";
+export default async function HomePage() {
+  const user = await getCurrentUser();
+  if (user) redirect("/dashboard");
 
-export default function HomePage() {
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <div className="rounded-xl border bg-white p-4 shadow-sm">
-        <h1 className="text-xl font-semibold">Simple POS</h1>
+      <div className="card">
+        <h1 className="text-2xl font-semibold tracking-tight">Simple POS</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Manage products, units, stock, and sales. Track revenue and profits.
+          A lightweight POS with products, stock, sales, and profit tracking.
         </p>
-
-        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Link
-            className="rounded-lg border bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-            href="/dashboard"
-          >
-            Dashboard
+        <p className="mt-4 text-sm text-slate-600">
+          Continue to{" "}
+          <Link className="underline" href="/login">
+            login
+          </Link>{" "}
+          or{" "}
+          <Link className="underline" href="/register">
+            create a store
           </Link>
-          <Link
-            className="rounded-lg border bg-white px-3 py-2 text-sm font-medium"
-            href="/products"
-          >
-            Products
-          </Link>
-          <Link
-            className="rounded-lg border bg-white px-3 py-2 text-sm font-medium"
-            href="/stock"
-          >
-            Stock
-          </Link>
-          <Link
-            className="rounded-lg border bg-white px-3 py-2 text-sm font-medium"
-            href="/sales/new"
-          >
-            New sale
-          </Link>
-          <Link
-            className="rounded-lg border bg-white px-3 py-2 text-sm font-medium"
-            href="/sales"
-          >
-            Sales query
-          </Link>
-          <Link
-            className="rounded-lg border bg-white px-3 py-2 text-sm font-medium"
-            href="/reference/units"
-          >
-            Reference: Units
-          </Link>
-        </div>
+          .
+        </p>
       </div>
     </main>
   );
