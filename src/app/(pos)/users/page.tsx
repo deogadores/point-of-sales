@@ -1,5 +1,6 @@
 import { createUserAction } from "@/app/(pos)/actions";
 import { requireAuth } from "@/lib/auth";
+import { formatDate } from "@/lib/format";
 import { listUsersByStore } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ export default async function UsersPage() {
           Users belong to a store. Only owners can add users.
         </p>
 
-        {user.role !== "owner" ? (
+        {user.role !== "Owner" ? (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             You are signed in as <span className="font-medium">{user.role}</span>. Ask an
             owner to create additional users.
@@ -33,9 +34,9 @@ export default async function UsersPage() {
             </label>
             <label className="sm:col-span-1">
               <div className="text-xs font-medium text-slate-600">Role</div>
-              <select name="role" className="field" defaultValue="staff">
-                <option value="staff">staff</option>
-                <option value="owner">owner</option>
+              <select name="role" className="field" defaultValue="Staff">
+                <option value="Staff">Staff</option>
+                <option value="Owner">Owner</option>
               </select>
             </label>
             <label className="sm:col-span-1">
@@ -51,14 +52,32 @@ export default async function UsersPage() {
 
       <div className="card">
         <div className="text-sm font-semibold">Store users</div>
-        <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+        {/* Mobile card layout */}
+        <div className="mt-3 space-y-2 md:hidden">
+          {users.length === 0 ? (
+            <div className="py-2 text-sm text-slate-600">No users found.</div>
+          ) : (
+            users.map((u: any) => (
+              <div key={u.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="font-medium">{u.name}</div>
+                <div className="mt-1 space-y-1 text-sm text-slate-600">
+                  <div>Email: {u.email}</div>
+                  <div>Role: {u.role}</div>
+                  <div>Created: {formatDate(u.created_at)}</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        {/* Desktop table layout */}
+        <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                <th className="py-2 pr-3">Name</th>
-                <th className="py-2 pr-3">Email</th>
-                <th className="py-2 pr-3">Role</th>
-                <th className="py-2 pr-3">Created</th>
+                <th className="whitespace-nowrap py-2 pr-3">Name</th>
+                <th className="whitespace-nowrap py-2 pr-3">Email</th>
+                <th className="whitespace-nowrap py-2 pr-3">Role</th>
+                <th className="whitespace-nowrap py-2 pr-3">Created</th>
               </tr>
             </thead>
             <tbody>
@@ -75,7 +94,7 @@ export default async function UsersPage() {
                     <td className="py-2 pr-3">{u.email}</td>
                     <td className="py-2 pr-3">{u.role}</td>
                     <td className="py-2 pr-3 text-xs text-slate-600">
-                      {String(u.created_at)}
+                      {formatDate(u.created_at)}
                     </td>
                   </tr>
                 ))

@@ -9,6 +9,16 @@ export default async function NewSalePage() {
   const user = await requireAuth();
   const products = await listProductsWithStock(user.storeId);
 
+  // Serialize products to plain objects to avoid serialization errors
+  const serializedProducts = products.map((p) => ({
+    id: Number(p.id),
+    name: String(p.name),
+    unit_cost_price: Number(p.unit_cost_price),
+    unit_sale_price: Number(p.unit_sale_price),
+    unit_symbol: p.unit_symbol ? String(p.unit_symbol) : null,
+    stock_qty: Number(p.stock_qty)
+  }));
+
   return (
     <div className="space-y-4">
       <div className="card">
@@ -29,12 +39,12 @@ export default async function NewSalePage() {
       </div>
 
       <div className="card">
-        {products.length === 0 ? (
+        {serializedProducts.length === 0 ? (
           <div className="text-sm text-slate-700">
             Add a product first, then come back here to record sales.
           </div>
         ) : (
-          <SaleForm products={products as any} />
+          <SaleForm products={serializedProducts} />
         )}
       </div>
     </div>

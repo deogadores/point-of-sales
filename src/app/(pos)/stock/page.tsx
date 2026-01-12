@@ -1,5 +1,6 @@
 import { addStockMovementAction } from "@/app/(pos)/actions";
 import { requireAuth } from "@/lib/auth";
+import { formatDate } from "@/lib/format";
 import { listProductsWithStock, listRecentStockMovements } from "@/lib/pos";
 
 export const runtime = "nodejs";
@@ -19,7 +20,11 @@ export default async function StockPage() {
           Add positive quantity to receive stock; add negative quantity to remove stock.
         </p>
 
-        <form action={addStockMovementAction} className="mt-4 grid gap-2 sm:grid-cols-6">
+        <form
+          action={addStockMovementAction}
+          className="mt-4 grid gap-2 sm:grid-cols-6"
+          suppressHydrationWarning
+        >
           <label className="sm:col-span-3">
             <div className="text-xs font-medium text-slate-600">Product</div>
             <select
@@ -68,12 +73,28 @@ export default async function StockPage() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="card">
           <div className="text-sm font-semibold">Current stock</div>
-          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+          {/* Mobile card layout */}
+          <div className="mt-3 space-y-2 md:hidden">
+            {products.length === 0 ? (
+              <div className="py-2 text-sm text-slate-600">No products yet.</div>
+            ) : (
+              products.map((p) => (
+                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="font-medium">{p.name}</div>
+                  <div className="mt-1 text-sm text-slate-600">
+                    Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {/* Desktop table layout */}
+          <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
             <table className="w-full min-w-[520px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
-                  <th className="py-2 pr-3">Product</th>
-                  <th className="py-2 pr-3">Stock</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Product</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Stock</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,14 +121,34 @@ export default async function StockPage() {
 
         <div className="card">
           <div className="text-sm font-semibold">Recent stock movements</div>
-          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+          {/* Mobile card layout */}
+          <div className="mt-3 space-y-2 md:hidden">
+            {recent.length === 0 ? (
+              <div className="py-2 text-sm text-slate-600">No movements yet.</div>
+            ) : (
+              recent.map((r) => (
+                <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="font-medium">{r.product_name}</div>
+                  <div className="mt-1 space-y-1 text-sm text-slate-600">
+                    <div>Date: {formatDate(r.created_at)}</div>
+                    <div>
+                      Qty: {Number(r.quantity).toFixed(2)} {r.unit_symbol ?? ""}
+                    </div>
+                    {r.reason && <div>Reason: {r.reason}</div>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {/* Desktop table layout */}
+          <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
-                  <th className="py-2 pr-3">Date</th>
-                  <th className="py-2 pr-3">Product</th>
-                  <th className="py-2 pr-3">Qty</th>
-                  <th className="py-2 pr-3">Reason</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Date</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Product</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Qty</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Reason</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,7 +162,7 @@ export default async function StockPage() {
                   recent.map((r) => (
                     <tr key={r.id} className="border-t">
                       <td className="py-2 pr-3 text-xs text-slate-600">
-                        {String(r.created_at)}
+                        {formatDate(r.created_at)}
                       </td>
                       <td className="py-2 pr-3 font-medium">{r.product_name}</td>
                       <td className="py-2 pr-3">

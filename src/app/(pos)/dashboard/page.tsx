@@ -34,14 +34,35 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="card">
           <div className="text-sm font-semibold">Top products</div>
-          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+          {/* Mobile card layout */}
+          <div className="mt-3 space-y-2 md:hidden">
+            {stats.topProducts.length === 0 ? (
+              <div className="py-2 text-sm text-slate-600">No sales yet.</div>
+            ) : (
+              stats.topProducts.map((r: any) => (
+                <div
+                  key={r.product_id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+                >
+                  <div className="font-medium">{r.product_name}</div>
+                  <div className="mt-1 space-y-1 text-sm text-slate-600">
+                    <div>Qty sold: {Number(r.qty_sold).toFixed(2)}</div>
+                    <div>Revenue: {formatMoney(Number(r.revenue))}</div>
+                    <div>Profit: {formatMoney(Number(r.profit))}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {/* Desktop table layout */}
+          <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
             <table className="w-full min-w-[480px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
-                  <th className="py-2 pr-3">Product</th>
-                  <th className="py-2 pr-3">Qty sold</th>
-                  <th className="py-2 pr-3">Revenue</th>
-                  <th className="py-2 pr-3">Profit</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Product</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Qty sold</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Revenue</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Profit</th>
                 </tr>
               </thead>
               <tbody>
@@ -71,12 +92,28 @@ export default async function DashboardPage() {
           <p className="mt-1 text-xs text-slate-500">
             Stock is computed as sum of stock movements minus sales.
           </p>
-          <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+          {/* Mobile card layout */}
+          <div className="mt-3 space-y-2 md:hidden">
+            {stats.lowStock.length === 0 ? (
+              <div className="py-2 text-sm text-slate-600">No products yet.</div>
+            ) : (
+              stats.lowStock.map((r: any) => (
+                <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="font-medium">{r.name}</div>
+                  <div className="mt-1 text-sm text-slate-600">
+                    Stock: {Number(r.stock_qty).toFixed(2)} {r.unit_symbol ?? ""}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          {/* Desktop table layout */}
+          <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
             <table className="w-full min-w-[480px] text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
-                  <th className="py-2 pr-3">Product</th>
-                  <th className="py-2 pr-3">Stock</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Product</th>
+                  <th className="whitespace-nowrap py-2 pr-3">Stock</th>
                 </tr>
               </thead>
               <tbody>

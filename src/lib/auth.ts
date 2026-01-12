@@ -34,7 +34,7 @@ export const CreateUserSchema = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.string().trim().email().max(200),
   password: z.string().min(8).max(200),
-  role: z.enum(["owner", "staff"]).default("staff")
+  role: z.enum(["Owner", "Staff"]).default("Staff")
 });
 
 export type CurrentUser = {
@@ -150,7 +150,7 @@ export async function registerStoreAndOwner(input: unknown) {
     const userRes = await db.execute({
       sql: `
         INSERT INTO users (store_id, name, email, password_hash, role)
-        VALUES (?, ?, ?, ?, 'owner')
+        VALUES (?, ?, ?, ?, 'Owner')
         RETURNING id;
       `,
       args: [storeId, data.name, data.email, passwordHash]

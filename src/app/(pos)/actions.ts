@@ -68,7 +68,7 @@ export async function createSaleAction(formData: FormData) {
 
 export async function createUserAction(formData: FormData) {
   const user = await requireAuth();
-  if (user.role !== "owner") {
+  if (user.role !== "Owner") {
     throw new Error("Only store owners can create users.");
   }
 
@@ -76,7 +76,7 @@ export async function createUserAction(formData: FormData) {
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
-    role: String(formData.get("role") ?? "staff")
+    role: String(formData.get("role") ?? "Staff")
   });
 
   revalidatePath("/users");

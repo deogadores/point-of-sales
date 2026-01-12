@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatDate } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, querySales } from "@/lib/pos";
 
@@ -16,10 +16,10 @@ function toEndOfDay(date: string) {
 export default async function SalesQueryPage({
   searchParams
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireAuth();
-  const sp = searchParams;
+  const sp = await searchParams;
   const startDate = typeof sp.start === "string" ? sp.start : "";
   const endDate = typeof sp.end === "string" ? sp.end : "";
   const productIdStr = typeof sp.productId === "string" ? sp.productId : "";
@@ -98,16 +98,39 @@ export default async function SalesQueryPage({
           </Link>
         </div>
 
-        <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+        {/* Mobile card layout */}
+        <div className="mt-3 space-y-2 md:hidden">
+          {rows.length === 0 ? (
+            <div className="py-2 text-sm text-slate-600">No matching sales.</div>
+          ) : (
+            rows.map((r: any) => (
+              <Link
+                key={r.id}
+                href={`/sales/${r.id}`}
+                className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100"
+              >
+                <div className="font-medium">Sale #{r.id}</div>
+                <div className="mt-1 space-y-1 text-sm text-slate-600">
+                  <div>Date: {formatDate(r.sold_at)}</div>
+                  <div>Items: {r.item_count}</div>
+                  <div>Revenue: {formatMoney(Number(r.total_revenue))}</div>
+                  <div>Profit: {formatMoney(Number(r.total_profit))}</div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+        {/* Desktop table layout */}
+        <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
           <table className="w-full min-w-[860px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                <th className="py-2 pr-3">Sale #</th>
-                <th className="py-2 pr-3">Date</th>
-                <th className="py-2 pr-3">Items</th>
-                <th className="py-2 pr-3">Revenue</th>
-                <th className="py-2 pr-3">Profit</th>
-                <th className="py-2 pr-3">Actions</th>
+                <th className="whitespace-nowrap py-2 pr-3">Sale #</th>
+                <th className="whitespace-nowrap py-2 pr-3">Date</th>
+                <th className="whitespace-nowrap py-2 pr-3">Items</th>
+                <th className="whitespace-nowrap py-2 pr-3">Revenue</th>
+                <th className="whitespace-nowrap py-2 pr-3">Profit</th>
+                <th className="whitespace-nowrap py-2 pr-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -122,7 +145,7 @@ export default async function SalesQueryPage({
                   <tr key={r.id} className="border-t">
                     <td className="py-2 pr-3 font-medium">{r.id}</td>
                     <td className="py-2 pr-3 text-xs text-slate-600">
-                      {String(r.sold_at)}
+                      {formatDate(r.sold_at)}
                     </td>
                     <td className="py-2 pr-3">{r.item_count}</td>
                     <td className="py-2 pr-3">{formatMoney(Number(r.total_revenue))}</td>

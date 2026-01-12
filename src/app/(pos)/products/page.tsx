@@ -95,16 +95,43 @@ export default async function ProductsPage() {
 
       <div className="card">
         <div className="text-sm font-semibold">Product list</div>
-        <div className="mt-3 overflow-x-auto no-scrollbar lg:overflow-x-visible">
+        {/* Mobile card layout */}
+        <div className="mt-3 space-y-2 md:hidden">
+          {products.length === 0 ? (
+            <div className="py-2 text-sm text-slate-600">No products yet.</div>
+          ) : (
+            products.map((p) => {
+              const unitProfit = Number(p.unit_sale_price) - Number(p.unit_cost_price);
+              return (
+                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="font-medium">{p.name}</div>
+                  <div className="mt-1 space-y-1 text-sm text-slate-600">
+                    <div>
+                      Unit: {p.unit_name} {p.unit_symbol ? `(${p.unit_symbol})` : ""}
+                    </div>
+                    <div>Cost: {formatMoney(Number(p.unit_cost_price))}</div>
+                    <div>Sale: {formatMoney(Number(p.unit_sale_price))}</div>
+                    <div>Profit: {formatMoney(unitProfit)}</div>
+                    <div>
+                      Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+        {/* Desktop table layout */}
+        <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
           <table className="w-full min-w-[860px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                <th className="py-2 pr-3">Name</th>
-                <th className="py-2 pr-3">Unit</th>
-                <th className="py-2 pr-3">Cost</th>
-                <th className="py-2 pr-3">Sale</th>
-                <th className="py-2 pr-3">Unit profit</th>
-                <th className="py-2 pr-3">Stock</th>
+                <th className="whitespace-nowrap py-2 pr-3">Name</th>
+                <th className="whitespace-nowrap py-2 pr-3">Unit</th>
+                <th className="whitespace-nowrap py-2 pr-3">Cost</th>
+                <th className="whitespace-nowrap py-2 pr-3">Sale</th>
+                <th className="whitespace-nowrap py-2 pr-3">Unit profit</th>
+                <th className="whitespace-nowrap py-2 pr-3">Stock</th>
               </tr>
             </thead>
             <tbody>
