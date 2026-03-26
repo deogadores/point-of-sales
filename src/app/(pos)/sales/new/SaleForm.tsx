@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { createSaleAction } from "@/app/(pos)/actions";
 import { formatMoney } from "@/lib/format";
+import { DateTimePicker } from "@/app/(pos)/sales/new/DateTimePicker";
 
 type Product = {
   id: number;
@@ -18,11 +19,12 @@ type Line = {
   quantity: number;
 };
 
-export function SaleForm({ products }: { products: Product[] }) {
+
+export function SaleForm({ products, currency }: { products: Product[]; currency: string }) {
   const firstId = products[0]?.id ?? 0;
-  const [lines, setLines] = useState<Line[]>(
-    firstId ? [{ productId: firstId, quantity: 1 }] : []
-  );
+  const [lines, setLines] = useState<Line[]>([]);
+  const [useCustomDate, setUseCustomDate] = useState(false);
+  const [customDate, setCustomDate] = useState("");
 
   const productById = useMemo(() => {
     return new Map<number, Product>(products.map((p) => [p.id, p]));
@@ -51,6 +53,33 @@ export function SaleForm({ products }: { products: Product[] }) {
   return (
     <form action={createSaleAction} className="space-y-3">
       <input type="hidden" name="itemsJson" value={itemsJson} />
+
+      {useCustomDate && (
+        <input type="hidden" name="soldAt" value={customDate} />
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="text-xs font-medium text-slate-600">Transaction date</div>
+        <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <button
+            type="button"
+            onClick={() => setUseCustomDate(false)}
+            className={`px-3 py-1.5 transition ${!useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+          >
+            Now
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseCustomDate(true)}
+            className={`px-3 py-1.5 transition border-l border-slate-200 ${useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+          >
+            Custom
+          </button>
+        </div>
+        {useCustomDate && (
+          <DateTimePicker value={customDate} onChange={setCustomDate} />
+        )}
+      </div>
 
       {/* Mobile card layout */}
       <div className="space-y-3 md:hidden">
@@ -103,10 +132,10 @@ export function SaleForm({ products }: { products: Product[] }) {
                     />
                   </label>
                   <div className="space-y-1 text-sm text-slate-600">
-                    <div>Unit sale: {formatMoney(unitSale)}</div>
-                    <div>Unit cost: {formatMoney(unitCost)}</div>
-                    <div>Line revenue: {formatMoney(lineRevenue)}</div>
-                    <div>Line profit: {formatMoney(lineProfit)}</div>
+                    <div>Unit sale: {formatMoney(unitSale, currency)}</div>
+                    <div>Unit cost: {formatMoney(unitCost, currency)}</div>
+                    <div>Line revenue: {formatMoney(lineRevenue, currency)}</div>
+                    <div>Line profit: {formatMoney(lineProfit, currency)}</div>
                   </div>
                   <button
                     type="button"
@@ -185,10 +214,10 @@ export function SaleForm({ products }: { products: Product[] }) {
                         }}
                       />
                     </td>
-                    <td className="py-2 pr-3">{formatMoney(unitSale)}</td>
-                    <td className="py-2 pr-3">{formatMoney(unitCost)}</td>
-                    <td className="py-2 pr-3">{formatMoney(lineRevenue)}</td>
-                    <td className="py-2 pr-3">{formatMoney(lineProfit)}</td>
+                    <td className="py-2 pr-3">{formatMoney(unitSale, currency)}</td>
+                    <td className="py-2 pr-3">{formatMoney(unitCost, currency)}</td>
+                    <td className="py-2 pr-3">{formatMoney(lineRevenue, currency)}</td>
+                    <td className="py-2 pr-3">{formatMoney(lineProfit, currency)}</td>
                     <td className="py-2 pr-3">
                       <button
                         type="button"
@@ -222,11 +251,11 @@ export function SaleForm({ products }: { products: Product[] }) {
         <div className="flex flex-wrap gap-3 text-sm">
           <div>
             <div className="text-xs font-medium text-slate-500">Total revenue</div>
-            <div className="font-semibold">{formatMoney(totals.revenue)}</div>
+            <div className="font-semibold">{formatMoney(totals.revenue, currency)}</div>
           </div>
           <div>
             <div className="text-xs font-medium text-slate-500">Total profit</div>
-            <div className="font-semibold">{formatMoney(totals.profit)}</div>
+            <div className="font-semibold">{formatMoney(totals.profit, currency)}</div>
           </div>
         </div>
       </div>

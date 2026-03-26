@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Dialog } from "@headlessui/react";
+import { Dialog, Menu } from "@headlessui/react";
 import { logoutAction } from "@/app/auth/actions";
 
-type NavItem = { href: string; label: string };
+type ChildNavItem = { href: string; label: string };
+type NavItem =
+  | { href: string; label: string; children?: never }
+  | { href?: never; label: string; children: ChildNavItem[] };
 
 export function PosHeader({
   nav,
@@ -22,24 +25,32 @@ export function PosHeader({
 
   const items = useMemo(() => nav, [nav]);
 
-  // Check if pathname matches any nav item exactly
+  const allLeafHrefs = useMemo(
+    () => items.flatMap((item) => (item.children ? item.children.map((c) => c.href) : [item.href!])),
+    [items]
+  );
+
   const exactMatchHref = useMemo(() => {
-    return items.find((item) => pathname === item.href)?.href;
-  }, [items, pathname]);
+    return allLeafHrefs.find((href) => pathname === href);
+  }, [allLeafHrefs, pathname]);
 
   function linkClass(href: string) {
     const exactMatch = pathname === href;
-    // Only use prefix matching if there's no exact match for this pathname
-    // and if this href is a parent of the pathname
-    const prefixMatch =
-      !exactMatchHref &&
-      href !== "/" &&
-      pathname?.startsWith(href + "/");
+    const prefixMatch = !exactMatchHref && href !== "/" && pathname?.startsWith(href + "/");
     const active = exactMatch || prefixMatch;
     return [
       "rounded-xl px-3 py-2 text-sm transition",
       active ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-100"
     ].join(" ");
+  }
+
+  function isGroupActive(children: ChildNavItem[]) {
+    return children.some((child) => {
+      const exactMatch = pathname === child.href;
+      const prefixMatch =
+        !exactMatchHref && child.href !== "/" && pathname?.startsWith(child.href + "/");
+      return exactMatch || prefixMatch;
+    });
   }
 
   return (
@@ -51,11 +62,47 @@ export function PosHeader({
 
         {/* Desktop Navigation */}
         <nav className="hidden flex-1 flex-wrap items-center gap-1 px-2 md:flex">
-          {items.map((item) => (
-            <Link key={item.href} href={item.href} className={linkClass(item.href)}>
-              {item.label}
-            </Link>
-          ))}
+          {items.map((item) =>
+            item.children ? (
+              <Menu as="div" key={item.label} className="relative">
+                <Menu.Button
+                  className={[
+                    "flex items-center gap-1 rounded-xl px-3 py-2 text-sm transition",
+                    isGroupActive(item.children)
+                      ? "bg-indigo-50 text-indigo-700"
+                      : "text-slate-700 hover:bg-slate-100"
+                  ].join(" ")}
+                >
+                  {item.label}
+                  <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+                    <path d="M6 8L1 3h10z" />
+                  </svg>
+                </Menu.Button>
+                <Menu.Items className="absolute left-0 top-full z-10 mt-1 min-w-[120px] rounded-xl border border-slate-200 bg-white py-1 shadow-lg focus:outline-none">
+                  {item.children.map((child) => (
+                    <Menu.Item key={child.href}>
+                      {({ active }) => (
+                        <Link
+                          href={child.href}
+                          className={[
+                            "block px-3 py-2 text-sm",
+                            active ? "bg-slate-50" : "",
+                            pathname === child.href ? "font-medium text-indigo-700" : "text-slate-700"
+                          ].join(" ")}
+                        >
+                          {child.label}
+                        </Link>
+                      )}
+                    </Menu.Item>
+                  ))}
+                </Menu.Items>
+              </Menu>
+            ) : (
+              <Link key={item.href} href={item.href!} className={linkClass(item.href!)}>
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -107,16 +154,41 @@ export function PosHeader({
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto py-4">
               <div className="grid gap-1">
-                {items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={linkClass(item.href)}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {items.map((item) =>
+                  item.children ? (
+                    <div key={item.label}>
+                      <div
+                        className={[
+                          "px-3 py-2 text-xs font-semibold uppercase tracking-wide",
+                          isGroupActive(item.children) ? "text-indigo-600" : "text-slate-400"
+                        ].join(" ")}
+                      >
+                        {item.label}
+                      </div>
+                      <div className="ml-2 grid gap-1">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={linkClass(child.href)}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href!}
+                      className={linkClass(item.href!)}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                )}
               </div>
             </nav>
 
@@ -132,4 +204,3 @@ export function PosHeader({
     </header>
   );
 }
-

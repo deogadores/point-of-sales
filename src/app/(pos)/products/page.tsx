@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { createProductAction } from "@/app/(pos)/actions";
 import { formatMoney } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, listUnits } from "@/lib/pos";
+import { ProductForm } from "./ProductForm";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export default async function ProductsPage() {
   const user = await requireAuth();
   const [products, units] = await Promise.all([
     listProductsWithStock(user.storeId),
-    listUnits()
+    listUnits(user.storeId)
   ]);
 
   return (
@@ -23,74 +23,12 @@ export default async function ProductsPage() {
               Each product has a cost price and a sale price (profit = sale - cost).
             </p>
           </div>
-          <Link
-            className="btn btn-ghost"
-            href="/reference/units"
-          >
+          <Link className="btn btn-ghost" href="/reference/units">
             Maintain units
           </Link>
         </div>
 
-        <form
-          action={createProductAction}
-          className="mt-4 grid gap-2 sm:grid-cols-6"
-        >
-          <label className="sm:col-span-2">
-            <div className="text-xs font-medium text-slate-600">Name</div>
-            <input
-              name="name"
-              placeholder="e.g. Coffee beans"
-              className="field"
-              required
-            />
-          </label>
-
-          <label className="sm:col-span-2">
-            <div className="text-xs font-medium text-slate-600">Unit</div>
-            <select
-              name="unitId"
-              className="field"
-              required
-              defaultValue={units[0]?.id ?? ""}
-            >
-              {units.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} {u.symbol ? `(${u.symbol})` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="sm:col-span-1">
-            <div className="text-xs font-medium text-slate-600">Unit cost</div>
-            <input
-              name="unitCostPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              className="field"
-              required
-            />
-          </label>
-
-          <label className="sm:col-span-1">
-            <div className="text-xs font-medium text-slate-600">Sale price</div>
-            <input
-              name="unitSalePrice"
-              type="number"
-              step="0.01"
-              min="0"
-              className="field"
-              required
-            />
-          </label>
-
-          <div className="sm:col-span-6">
-            <button className="btn btn-primary w-full sm:w-auto">
-              Add product
-            </button>
-          </div>
-        </form>
+        <ProductForm units={units} />
       </div>
 
       <div className="card">
@@ -103,17 +41,22 @@ export default async function ProductsPage() {
             products.map((p) => {
               const unitProfit = Number(p.unit_sale_price) - Number(p.unit_cost_price);
               return (
-                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="font-medium">{p.name}</div>
-                  <div className="mt-1 space-y-1 text-sm text-slate-600">
-                    <div>
-                      Unit: {p.unit_name} {p.unit_symbol ? `(${p.unit_symbol})` : ""}
-                    </div>
-                    <div>Cost: {formatMoney(Number(p.unit_cost_price))}</div>
-                    <div>Sale: {formatMoney(Number(p.unit_sale_price))}</div>
-                    <div>Profit: {formatMoney(unitProfit)}</div>
-                    <div>
-                      Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
+                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex gap-3">
+                  {p.image_url && (
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      className="h-14 w-14 shrink-0 rounded-lg object-cover border border-slate-200"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-medium">{p.name}</div>
+                    <div className="mt-1 space-y-1 text-sm text-slate-600">
+                      <div>Unit: {p.unit_name} {p.unit_symbol ? `(${p.unit_symbol})` : ""}</div>
+                      <div>Cost: {formatMoney(Number(p.unit_cost_price), user.storeCurrency)}</div>
+                      <div>Sale: {formatMoney(Number(p.unit_sale_price), user.storeCurrency)}</div>
+                      <div>Profit: {formatMoney(unitProfit, user.storeCurrency)}</div>
+                      <div>Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}</div>
                     </div>
                   </div>
                 </div>
@@ -126,6 +69,7 @@ export default async function ProductsPage() {
           <table className="w-full min-w-[860px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
+                <th className="whitespace-nowrap py-2 pr-3 w-10"></th>
                 <th className="whitespace-nowrap py-2 pr-3">Name</th>
                 <th className="whitespace-nowrap py-2 pr-3">Unit</th>
                 <th className="whitespace-nowrap py-2 pr-3">Cost</th>
@@ -137,7 +81,7 @@ export default async function ProductsPage() {
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-2 text-slate-600">
+                  <td colSpan={7} className="py-2 text-slate-600">
                     No products yet.
                   </td>
                 </tr>
@@ -146,13 +90,24 @@ export default async function ProductsPage() {
                   const unitProfit = Number(p.unit_sale_price) - Number(p.unit_cost_price);
                   return (
                     <tr key={p.id} className="border-t">
+                      <td className="py-2 pr-3">
+                        {p.image_url ? (
+                          <img
+                            src={p.image_url}
+                            alt={p.name}
+                            className="h-8 w-8 rounded-md object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded-md bg-slate-100" />
+                        )}
+                      </td>
                       <td className="py-2 pr-3 font-medium">{p.name}</td>
                       <td className="py-2 pr-3">
                         {p.unit_name} {p.unit_symbol ? `(${p.unit_symbol})` : ""}
                       </td>
-                      <td className="py-2 pr-3">{formatMoney(Number(p.unit_cost_price))}</td>
-                      <td className="py-2 pr-3">{formatMoney(Number(p.unit_sale_price))}</td>
-                      <td className="py-2 pr-3">{formatMoney(unitProfit)}</td>
+                      <td className="py-2 pr-3">{formatMoney(Number(p.unit_cost_price), user.storeCurrency)}</td>
+                      <td className="py-2 pr-3">{formatMoney(Number(p.unit_sale_price), user.storeCurrency)}</td>
+                      <td className="py-2 pr-3">{formatMoney(unitProfit, user.storeCurrency)}</td>
                       <td className="py-2 pr-3">
                         {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
                       </td>
@@ -167,4 +122,3 @@ export default async function ProductsPage() {
     </div>
   );
 }
-

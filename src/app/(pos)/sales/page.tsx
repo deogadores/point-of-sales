@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatMoney, formatDate } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, querySales } from "@/lib/pos";
+import { SalesFilterForm } from "@/app/(pos)/sales/SalesFilterForm";
 
 export const runtime = "nodejs";
 
@@ -42,49 +43,12 @@ export default async function SalesQueryPage({
           Filter by date range and optionally by product.
         </p>
 
-        <form className="mt-4 grid gap-2 sm:grid-cols-6">
-          <label className="sm:col-span-2">
-            <div className="text-xs font-medium text-slate-600">Start date</div>
-            <input
-              name="start"
-              type="date"
-              defaultValue={startDate}
-              className="field"
-            />
-          </label>
-
-          <label className="sm:col-span-2">
-            <div className="text-xs font-medium text-slate-600">End date</div>
-            <input
-              name="end"
-              type="date"
-              defaultValue={endDate}
-              className="field"
-            />
-          </label>
-
-          <label className="sm:col-span-2">
-            <div className="text-xs font-medium text-slate-600">Product (optional)</div>
-            <select
-              name="productId"
-              defaultValue={productIdStr}
-              className="field"
-            >
-              <option value="">All products</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="sm:col-span-6">
-            <button className="btn btn-primary w-full sm:w-auto">
-              Run query
-            </button>
-          </div>
-        </form>
+        <SalesFilterForm
+          products={products.map((p) => ({ id: p.id, name: String(p.name) }))}
+          startDate={startDate}
+          endDate={endDate}
+          productIdStr={productIdStr}
+        />
       </div>
 
       <div className="card">
@@ -109,12 +73,11 @@ export default async function SalesQueryPage({
                 href={`/sales/${r.id}`}
                 className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100"
               >
-                <div className="font-medium">Sale #{r.id}</div>
-                <div className="mt-1 space-y-1 text-sm text-slate-600">
+                <div className="space-y-1 text-sm text-slate-600">
                   <div>Date: {formatDate(r.sold_at)}</div>
                   <div>Items: {r.item_count}</div>
-                  <div>Revenue: {formatMoney(Number(r.total_revenue))}</div>
-                  <div>Profit: {formatMoney(Number(r.total_profit))}</div>
+                  <div>Revenue: {formatMoney(Number(r.total_revenue), user.storeCurrency)}</div>
+                  <div>Profit: {formatMoney(Number(r.total_profit), user.storeCurrency)}</div>
                 </div>
               </Link>
             ))
@@ -122,10 +85,9 @@ export default async function SalesQueryPage({
         </div>
         {/* Desktop table layout */}
         <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
-          <table className="w-full min-w-[860px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead className="text-left text-xs text-slate-500">
               <tr>
-                <th className="whitespace-nowrap py-2 pr-3">Sale #</th>
                 <th className="whitespace-nowrap py-2 pr-3">Date</th>
                 <th className="whitespace-nowrap py-2 pr-3">Items</th>
                 <th className="whitespace-nowrap py-2 pr-3">Revenue</th>
@@ -136,20 +98,19 @@ export default async function SalesQueryPage({
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-2 text-slate-600">
+                  <td colSpan={5} className="py-2 text-slate-600">
                     No matching sales.
                   </td>
                 </tr>
               ) : (
                 rows.map((r: any) => (
                   <tr key={r.id} className="border-t">
-                    <td className="py-2 pr-3 font-medium">{r.id}</td>
                     <td className="py-2 pr-3 text-xs text-slate-600">
                       {formatDate(r.sold_at)}
                     </td>
                     <td className="py-2 pr-3">{r.item_count}</td>
-                    <td className="py-2 pr-3">{formatMoney(Number(r.total_revenue))}</td>
-                    <td className="py-2 pr-3">{formatMoney(Number(r.total_profit))}</td>
+                    <td className="py-2 pr-3">{formatMoney(Number(r.total_revenue), user.storeCurrency)}</td>
+                    <td className="py-2 pr-3">{formatMoney(Number(r.total_profit), user.storeCurrency)}</td>
                     <td className="py-2 pr-3">
                       <Link
                         className="btn btn-ghost px-3 py-1.5 text-xs"

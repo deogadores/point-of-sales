@@ -1,17 +1,16 @@
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { RegisterForm } from "@/app/register/RegisterForm";
-import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-export default async function RegisterPage() {
-  const user = await getCurrentUser();
-  if (user) redirect("/dashboard");
-
+export default function RegisterPage() {
   return (
-    <main className="mx-auto max-w-md p-4">
-      <RegisterForm />
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Suspense>
+          <RegisterForm />
+        </Suspense>
+      </div>
     </main>
   );
 }
-

@@ -1,10 +1,12 @@
 import { createUnitAction, deleteUnitAction } from "@/app/(pos)/actions";
 import { listUnits } from "@/lib/pos";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export default async function UnitsPage() {
-  const units = await listUnits();
+  const user = await requireAuth();
+  const units = await listUnits(user.storeId);
 
   return (
     <div className="space-y-4">

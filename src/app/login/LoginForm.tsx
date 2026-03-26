@@ -39,11 +39,10 @@ export function LoginForm() {
       <p className="mt-4 text-sm text-slate-600">
         New here?{" "}
         <Link className="underline" href="/register">
-          Create a store
+          Create an account
         </Link>
         .
       </p>
     </div>
   );
 }
-

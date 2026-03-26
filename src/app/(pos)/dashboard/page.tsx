@@ -1,6 +1,7 @@
 import { formatMoney } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
-import { getDashboardStats } from "@/lib/pos";
+import { getDashboardStats, getDailyChart, getMonthlyChart, getTopProductsByProfit } from "@/lib/pos";
+import { DashboardChartsWrapper } from "./DashboardChartsWrapper";
 
 export const runtime = "nodejs";
 
@@ -21,15 +22,23 @@ function StatCard({
 
 export default async function DashboardPage() {
   const user = await requireAuth();
-  const stats = await getDashboardStats(user.storeId);
+  const [stats, daily7, daily30, monthly, topProducts] = await Promise.all([
+    getDashboardStats(user.storeId),
+    getDailyChart(user.storeId, 7),
+    getDailyChart(user.storeId, 30),
+    getMonthlyChart(user.storeId, 12),
+    getTopProductsByProfit(user.storeId),
+  ]);
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Total revenue" value={formatMoney(stats.revenue)} />
-        <StatCard label="Total profit" value={formatMoney(stats.profit)} />
+        <StatCard label="Total revenue" value={formatMoney(stats.revenue, user.storeCurrency)} />
+        <StatCard label="Total profit" value={formatMoney(stats.profit, user.storeCurrency)} />
         <StatCard label="Sales count" value={String(stats.salesCount)} />
       </div>
+
+      <DashboardChartsWrapper daily7={daily7} daily30={daily30} monthly={monthly} topProducts={topProducts} currency={user.storeCurrency} />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="card">
@@ -47,8 +56,8 @@ export default async function DashboardPage() {
                   <div className="font-medium">{r.product_name}</div>
                   <div className="mt-1 space-y-1 text-sm text-slate-600">
                     <div>Qty sold: {Number(r.qty_sold).toFixed(2)}</div>
-                    <div>Revenue: {formatMoney(Number(r.revenue))}</div>
-                    <div>Profit: {formatMoney(Number(r.profit))}</div>
+                    <div>Revenue: {formatMoney(Number(r.revenue), user.storeCurrency)}</div>
+                    <div>Profit: {formatMoney(Number(r.profit), user.storeCurrency)}</div>
                   </div>
                 </div>
               ))
@@ -77,8 +86,8 @@ export default async function DashboardPage() {
                     <tr key={r.product_id} className="border-t">
                       <td className="py-2 pr-3 font-medium">{r.product_name}</td>
                       <td className="py-2 pr-3">{Number(r.qty_sold).toFixed(2)}</td>
-                      <td className="py-2 pr-3">{formatMoney(Number(r.revenue))}</td>
-                      <td className="py-2 pr-3">{formatMoney(Number(r.profit))}</td>
+                      <td className="py-2 pr-3">{formatMoney(Number(r.revenue), user.storeCurrency)}</td>
+                      <td className="py-2 pr-3">{formatMoney(Number(r.profit), user.storeCurrency)}</td>
                     </tr>
                   ))
                 )}

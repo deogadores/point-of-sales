@@ -2,18 +2,22 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { registerAction, type AuthState } from "@/app/auth/actions";
 
 const initialState: AuthState = {};
 
 export function RegisterForm() {
   const [state, action, pending] = useActionState(registerAction, initialState);
+  const searchParams = useSearchParams();
+  const phraseFromUrl = searchParams.get("phrase") || "";
+  const emailFromUrl = searchParams.get("email") || "";
 
   return (
     <div className="card">
-      <div className="text-xl font-semibold tracking-tight">Create your store</div>
+      <div className="text-xl font-semibold tracking-tight">Create an account</div>
       <p className="mt-1 text-sm text-slate-600">
-        This creates a new store and an owner account.
+        You need a registration phrase to sign up. After registering you can create or join a store.
       </p>
 
       {state.error ? (
@@ -24,8 +28,17 @@ export function RegisterForm() {
 
       <form action={action} className="mt-4 space-y-3">
         <label className="block">
-          <div className="text-xs font-medium text-slate-600">Store name</div>
-          <input name="storeName" className="field" required />
+          <div className="text-xs font-medium text-slate-600">Registration phrase</div>
+          <input
+            name="registrationPhrase"
+            className={`field ${phraseFromUrl ? "cursor-not-allowed bg-slate-50 text-slate-500" : ""}`}
+            defaultValue={phraseFromUrl}
+            readOnly={!!phraseFromUrl}
+            required
+          />
+          {!phraseFromUrl && (
+            <div className="mt-1 text-xs text-slate-500">Provided by your administrator.</div>
+          )}
         </label>
 
         <label className="block">
@@ -35,7 +48,14 @@ export function RegisterForm() {
 
         <label className="block">
           <div className="text-xs font-medium text-slate-600">Email</div>
-          <input name="email" type="email" className="field" required />
+          <input
+            name="email"
+            type="email"
+            className={`field ${emailFromUrl ? "cursor-not-allowed bg-slate-50 text-slate-500" : ""}`}
+            defaultValue={emailFromUrl}
+            readOnly={!!emailFromUrl}
+            required
+          />
         </label>
 
         <label className="block">
@@ -45,7 +65,7 @@ export function RegisterForm() {
         </label>
 
         <button className="btn btn-primary w-full" disabled={pending}>
-          {pending ? "Creating..." : "Create store"}
+          {pending ? "Creating account..." : "Create account"}
         </button>
       </form>
 
@@ -59,4 +79,3 @@ export function RegisterForm() {
     </div>
   );
 }
-

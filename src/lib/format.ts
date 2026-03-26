@@ -1,8 +1,10 @@
-export function formatMoney(n: number) {
+export function formatMoney(n: number, currency = 'USD') {
   const value = Number.isFinite(n) ? n : 0;
   return value.toLocaleString(undefined, {
+    style: 'currency',
+    currency,
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
 }
 

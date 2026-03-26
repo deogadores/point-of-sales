@@ -9,8 +9,10 @@ export default async function LoginPage() {
   if (user) redirect("/dashboard");
 
   return (
-    <main className="mx-auto max-w-md p-4">
-      <LoginForm />
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <LoginForm />
+      </div>
     </main>
   );
 }

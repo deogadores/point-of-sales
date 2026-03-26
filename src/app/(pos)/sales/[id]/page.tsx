@@ -8,10 +8,10 @@ export const runtime = "nodejs";
 export default async function SaleDetailPage({
   params
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const user = await requireAuth();
-  const { id } = params;
+  const { id } = await params;
   const saleId = Number(id);
   const detail = await getSaleDetail(user.storeId, saleId);
 
@@ -48,13 +48,13 @@ export default async function SaleDetailPage({
           <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
             <div className="text-xs font-medium text-slate-500">Total revenue</div>
             <div className="mt-1 text-lg font-semibold">
-              {formatMoney(Number(sale.total_revenue))}
+              {formatMoney(Number(sale.total_revenue), user.storeCurrency)}
             </div>
           </div>
           <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
             <div className="text-xs font-medium text-slate-500">Total profit</div>
             <div className="mt-1 text-lg font-semibold">
-              {formatMoney(Number(sale.total_profit))}
+              {formatMoney(Number(sale.total_profit), user.storeCurrency)}
             </div>
           </div>
         </div>
@@ -71,10 +71,10 @@ export default async function SaleDetailPage({
                 <div>
                   Qty: {Number(it.quantity).toFixed(2)} {it.unit_symbol ?? ""}
                 </div>
-                <div>Unit sale: {formatMoney(Number(it.unit_sale_price))}</div>
-                <div>Unit cost: {formatMoney(Number(it.unit_cost_price))}</div>
-                <div>Line revenue: {formatMoney(Number(it.line_revenue))}</div>
-                <div>Line profit: {formatMoney(Number(it.line_profit))}</div>
+                <div>Unit sale: {formatMoney(Number(it.unit_sale_price), user.storeCurrency)}</div>
+                <div>Unit cost: {formatMoney(Number(it.unit_cost_price), user.storeCurrency)}</div>
+                <div>Line revenue: {formatMoney(Number(it.line_revenue), user.storeCurrency)}</div>
+                <div>Line profit: {formatMoney(Number(it.line_profit), user.storeCurrency)}</div>
               </div>
             </div>
           ))}
@@ -99,10 +99,10 @@ export default async function SaleDetailPage({
                   <td className="py-2 pr-3">
                     {Number(it.quantity).toFixed(2)} {it.unit_symbol ?? ""}
                   </td>
-                  <td className="py-2 pr-3">{formatMoney(Number(it.unit_sale_price))}</td>
-                  <td className="py-2 pr-3">{formatMoney(Number(it.unit_cost_price))}</td>
-                  <td className="py-2 pr-3">{formatMoney(Number(it.line_revenue))}</td>
-                  <td className="py-2 pr-3">{formatMoney(Number(it.line_profit))}</td>
+                  <td className="py-2 pr-3">{formatMoney(Number(it.unit_sale_price), user.storeCurrency)}</td>
+                  <td className="py-2 pr-3">{formatMoney(Number(it.unit_cost_price), user.storeCurrency)}</td>
+                  <td className="py-2 pr-3">{formatMoney(Number(it.line_revenue), user.storeCurrency)}</td>
+                  <td className="py-2 pr-3">{formatMoney(Number(it.line_profit), user.storeCurrency)}</td>
                 </tr>
               ))}
             </tbody>

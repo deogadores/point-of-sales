@@ -44,7 +44,7 @@ export default async function NewSalePage() {
             Add a product first, then come back here to record sales.
           </div>
         ) : (
-          <SaleForm products={serializedProducts} />
+          <SaleForm products={serializedProducts} currency={user.storeCurrency} />
         )}
       </div>
     </div>
