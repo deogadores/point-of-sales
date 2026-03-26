@@ -1,5 +1,5 @@
 const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:3001'
-const TOOL_SLUG = 'pos'
+const TOOL_SLUG = 'simple-pos'
 
 export interface AuthUser {
   id: string

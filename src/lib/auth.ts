@@ -86,7 +86,7 @@ export async function login(input: unknown) {
   if (!result.success || !result.token) {
     throw new Error(result.error || "Invalid email or password.");
   }
-  if (!result.toolAccess?.includes('pos')) {
+  if (!result.toolAccess?.includes('simple-pos')) {
     throw new Error("You do not have access to this tool.");
   }
 
@@ -100,7 +100,7 @@ export async function register(input: unknown) {
   if (!result.success || !result.token) {
     throw new Error(result.error || "Registration failed.");
   }
-  if (!result.toolAccess?.includes('pos')) {
+  if (!result.toolAccess?.includes('simple-pos')) {
     throw new Error("Registration phrase is not valid for this tool.");
   }
 
