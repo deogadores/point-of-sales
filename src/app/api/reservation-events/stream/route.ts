@@ -15,6 +15,7 @@ function toSqlite(iso: string) {
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return new Response("Unauthorized", { status: 401 });
+  const { storeId } = user;
 
   const encoder = new TextEncoder();
   let lastChecked = new Date().toISOString();
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
               customer_name: reservations.customerName,
             })
             .from(reservations)
-            .where(and(eq(reservations.storeId, user.storeId), gt(reservations.createdAt, sinceSqlite)))
+            .where(and(eq(reservations.storeId, storeId), gt(reservations.createdAt, sinceSqlite)))
             .orderBy(asc(reservations.createdAt)),
 
             db.select({
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
             })
             .from(reservations)
             .where(and(
-              eq(reservations.storeId, user.storeId),
+              eq(reservations.storeId, storeId),
               gt(reservations.updatedAt, sinceSqlite),
               lte(reservations.createdAt, sinceSqlite),
             ))

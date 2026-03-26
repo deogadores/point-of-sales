@@ -34,7 +34,8 @@ function shortMonth(m: string) {
 function tooltipStyle(currency: string) {
   return {
     contentStyle: { borderRadius: "0.75rem", border: "1px solid #e2e8f0", fontSize: 12 },
-    formatter: (value: number) => money(value, currency),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formatter: (value: any) => money(typeof value === "number" ? value : 0, currency),
   };
 }
 
