@@ -130,7 +130,7 @@ export default async function StockPage() {
                 <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <div className="font-medium">{r.product_name}</div>
                   <div className="mt-1 space-y-1 text-sm text-slate-600">
-                    <div>Date: {formatDate(r.created_at)}</div>
+                    <div>Date: {formatDate(r.created_at, user.storeTimezone)}</div>
                     <div>
                       Qty: {Number(r.quantity).toFixed(2)} {r.unit_symbol ?? ""}
                     </div>
@@ -162,7 +162,7 @@ export default async function StockPage() {
                   recent.map((r) => (
                     <tr key={r.id} className="border-t">
                       <td className="py-2 pr-3 text-xs text-slate-600">
-                        {formatDate(r.created_at)}
+                        {formatDate(r.created_at, user.storeTimezone)}
                       </td>
                       <td className="py-2 pr-3 font-medium">{r.product_name}</td>
                       <td className="py-2 pr-3">

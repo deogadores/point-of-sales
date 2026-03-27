@@ -10,6 +10,7 @@ import {
 import { updateReservationStatusAction } from "@/app/(pos)/actions";
 import { formatMoney, formatDate } from "@/lib/format";
 import { ReservationAutoRefresh } from "@/app/(pos)/reservations/[id]/ReservationAutoRefresh";
+import { DownloadProofButton } from "@/app/(pos)/reservations/[id]/DownloadProofButton";
 
 export const runtime = "nodejs";
 
@@ -38,13 +39,17 @@ const VALID_TRANSITIONS: Record<ReservationStatus, ReservationStatus | null> = {
 };
 
 export default async function ReservationDetailPage({
-  params
+  params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
   const reservationId = Number(id);
   if (!reservationId) notFound();
+  const sp = await searchParams;
+  const from = typeof sp.from === "string" ? sp.from : null;
 
   const user = await requireAuth();
   const data = await getReservationDetail(user.storeId, reservationId);
@@ -60,12 +65,12 @@ export default async function ReservationDetailPage({
       <ReservationAutoRefresh reservationId={reservationId} />
       <div className="card flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <Link href="/reservations" className="btn btn-ghost text-xs">
-            ← Reservations
+          <Link href={from ?? "/reservations"} className="btn btn-ghost text-xs">
+            {from ? "← Sale" : "← Reservations"}
           </Link>
           <div>
             <div className="text-sm font-semibold">Reservation #{reservation.id}</div>
-            <div className="text-xs text-slate-500">{formatDate(String(reservation.createdAt))}</div>
+            <div className="text-xs text-slate-500">{formatDate(String(reservation.createdAt), user.storeTimezone)}</div>
           </div>
         </div>
         <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLORS[status]}`}>
@@ -110,8 +115,11 @@ export default async function ReservationDetailPage({
           {reservation.notes && (
             <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">{reservation.notes}</div>
           )}
-          <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-400">
-            Updated {formatDate(String(reservation.updatedAt))}
+          <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-400 dark:border-gray-700 space-y-0.5">
+            {reservation.processedByName && (
+              <div>Processed by {reservation.processedByName}</div>
+            )}
+            <div>Updated {formatDate(String(reservation.updatedAt), user.storeTimezone)}</div>
           </div>
         </div>
 
@@ -141,13 +149,11 @@ export default async function ReservationDetailPage({
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-sm">Payment proof</div>
-            <a
-              href={`data:${reservation.paymentProofMime};base64,${reservation.paymentProof}`}
-              download={`payment-proof-${reservation.id}.${reservation.paymentProofMime === "image/png" ? "png" : "jpg"}`}
-              className="btn btn-ghost text-xs"
-            >
-              Download
-            </a>
+            <DownloadProofButton
+              reservationId={reservation.id}
+              mime={reservation.paymentProofMime ?? "image/jpeg"}
+              base64={reservation.paymentProof}
+            />
           </div>
           <img
             src={`data:${reservation.paymentProofMime};base64,${reservation.paymentProof}`}

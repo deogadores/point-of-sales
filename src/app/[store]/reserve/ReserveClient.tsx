@@ -96,7 +96,7 @@ export function ReserveClient({
               </div>
             );
           })}
-          <div className="border-t border-slate-200 pt-3 flex justify-between text-sm font-semibold">
+          <div className="border-t border-slate-200 pt-3 flex justify-between text-sm font-semibold dark:border-gray-700">
             <span>Total</span>
             <span>{formatMoney(total, currency)}</span>
           </div>
@@ -107,19 +107,19 @@ export function ReserveClient({
             <input type="hidden" name="storeSlug" value={storeSlug} />
             <input type="hidden" name="itemsJson" value={itemsJson} />
             <div>
-              <label className="text-xs font-medium text-slate-600">Full name *</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Full name *</label>
               <input name="customerName" required className="field" placeholder="Your full name" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">Email</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Email</label>
               <input name="customerEmail" type="email" className="field" placeholder="your@email.com" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">Phone *</label>
-              <input name="customerPhone" type="tel" required className="field" placeholder="+1 234 567 8900" />
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Phone *</label>
+              <input name="customerPhone" type="tel" required className="field" placeholder="09XX XXX XXXX" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">Notes</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Notes</label>
               <textarea name="notes" className="field" rows={3} placeholder="Any special requests…" />
             </div>
             <button type="submit" className="btn btn-primary w-full">
@@ -147,7 +147,7 @@ export function ReserveClient({
           className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-medium transition ${
             hideOutOfStock
               ? "border-indigo-600 bg-indigo-600 text-white"
-              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-300 dark:hover:bg-gray-700"
           }`}
         >
           {hideOutOfStock ? "Showing in-stock only" : "Show in-stock only"}
@@ -181,7 +181,7 @@ export function ReserveClient({
                 <div className="flex flex-col gap-3 p-3 flex-1">
                   <div className="flex-1">
                     <div className="font-medium text-sm">{p.name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">
+                    <div className="text-xs text-slate-500 mt-0.5 dark:text-slate-400">
                       {inStock
                         ? `${Number(p.stock_qty).toFixed(0)} ${p.unit_symbol ?? ""} available`
                         : "Out of stock"}

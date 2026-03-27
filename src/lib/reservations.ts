@@ -189,7 +189,7 @@ export async function getReservationDetail(storeId: number, reservationId: numbe
   return { reservation, items };
 }
 
-export async function updateReservationStatus(storeId: number, reservationId: number, status: ReservationStatus) {
+export async function updateReservationStatus(storeId: number, reservationId: number, status: ReservationStatus, processedByName?: string) {
   const [reservation] = await db
     .select({ id: reservations.id, status: reservations.status })
     .from(reservations)
@@ -232,7 +232,7 @@ export async function updateReservationStatus(storeId: number, reservationId: nu
     await db.transaction(async (tx) => {
       const [sale] = await tx
         .insert(sales)
-        .values({ storeId, totalRevenue, totalProfit })
+        .values({ storeId, reservationId, totalRevenue, totalProfit, ...(processedByName ? { processedByName } : {}) })
         .returning({ id: sales.id });
       if (!sale) throw new Error("Failed to create sale.");
 
@@ -257,7 +257,7 @@ export async function updateReservationStatus(storeId: number, reservationId: nu
 
       await tx
         .update(reservations)
-        .set({ status: "completed", updatedAt: sql`datetime('now')` })
+        .set({ status: "completed", updatedAt: sql`datetime('now')`, ...(processedByName ? { processedByName } : {}) })
         .where(and(eq(reservations.storeId, storeId), eq(reservations.id, reservationId)));
     });
 
@@ -266,6 +266,6 @@ export async function updateReservationStatus(storeId: number, reservationId: nu
 
   await db
     .update(reservations)
-    .set({ status, updatedAt: sql`datetime('now')` })
+    .set({ status, updatedAt: sql`datetime('now')`, ...(processedByName ? { processedByName } : {}) })
     .where(and(eq(reservations.storeId, storeId), eq(reservations.id, reservationId)));
 }

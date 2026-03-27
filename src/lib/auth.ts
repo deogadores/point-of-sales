@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { stores, storeMembers, units } from "@/lib/db/schema";
 import { getSession, setAuthCookie, clearAuthCookie } from "@/lib/auth/session";
 import { loginWithCentralAuth, registerWithCentralAuth } from "@/lib/auth/api-client";
+import { logAudit } from "@/lib/audit";
 
 export const LoginSchema = z.object({
   email: z.string().trim().email().max(200),
@@ -33,6 +34,7 @@ export type CurrentUser = {
   storeName: string;
   storeSlug: string;
   storeCurrency: string;
+  storeTimezone: string;
   liveNotifications: boolean;
   name: string;
   email: string;
@@ -47,6 +49,7 @@ async function lookupStoreMember(authUserId: string) {
       storeName: stores.name,
       storeSlug: stores.slug,
       storeCurrency: stores.currency,
+      storeTimezone: stores.timezone,
       liveNotifications: stores.liveNotifications,
       name: storeMembers.name,
       email: storeMembers.email,
@@ -139,6 +142,7 @@ export async function setupStore(authUserId: string, name: string, email: string
       name,
       email,
       role: 'Owner',
+      isFounder: true,
     });
 
     await tx.insert(units).values([
@@ -147,6 +151,17 @@ export async function setupStore(authUserId: string, name: string, email: string
       { storeId: store.id, name: 'Pack', symbol: 'pck' },
     ]);
   });
+
+  // Log after transaction — storeId is now stable
+  const [created] = await db.select({ id: stores.id }).from(stores).where(eq(stores.name, data.storeName)).limit(1);
+  if (created) {
+    await logAudit(created.id, {
+      actorName: name,
+      action: "store.created",
+      entityType: "store",
+      detail: data.storeName,
+    });
+  }
 }
 
 export async function joinStore(authUserId: string, name: string, email: string, input: unknown) {
@@ -175,6 +190,13 @@ export async function joinStore(authUserId: string, name: string, email: string,
     email,
     role: 'Staff',
   });
+
+  await logAudit(store.id, {
+    actorName: name,
+    action: "user.joined",
+    entityType: "user",
+    detail: `${name} joined as Staff`,
+  });
 }
 
 export async function listUsersByStore(storeId: number) {
@@ -184,6 +206,7 @@ export async function listUsersByStore(storeId: number) {
       name: storeMembers.name,
       email: storeMembers.email,
       role: storeMembers.role,
+      isFounder: storeMembers.isFounder,
       joined_at: storeMembers.joinedAt,
     })
     .from(storeMembers)
@@ -195,8 +218,38 @@ export async function updateStoreCurrency(storeId: number, currency: string) {
   await db.update(stores).set({ currency }).where(eq(stores.id, storeId));
 }
 
+export async function updateStoreTimezone(storeId: number, timezone: string) {
+  await db.update(stores).set({ timezone }).where(eq(stores.id, storeId));
+}
+
 export async function updateLiveNotifications(storeId: number, enabled: boolean) {
   await db.update(stores).set({ liveNotifications: enabled }).where(eq(stores.id, storeId));
+}
+
+export async function renameStore(storeId: number, newName: string) {
+  const slug = toSlug(newName);
+  try {
+    await db.update(stores).set({ name: newName, slug }).where(eq(stores.id, storeId));
+  } catch (e: any) {
+    if (e?.message?.includes('UNIQUE')) throw new Error("A store with that name already exists.");
+    throw e;
+  }
+}
+
+export async function changeUserRole(storeId: number, memberId: number, newRole: 'Owner' | 'Staff') {
+  const [member] = await db
+    .select({ id: storeMembers.id, isFounder: storeMembers.isFounder })
+    .from(storeMembers)
+    .where(and(eq(storeMembers.id, memberId), eq(storeMembers.storeId, storeId)))
+    .limit(1);
+
+  if (!member) throw new Error("Member not found.");
+  if (member.isFounder) throw new Error("The founding owner's role cannot be changed.");
+
+  await db
+    .update(storeMembers)
+    .set({ role: newRole })
+    .where(eq(storeMembers.id, memberId));
 }
 
 export async function getStoreInviteCode(storeId: number): Promise<string | null> {

@@ -34,17 +34,17 @@ export function SalesFilterForm({
   return (
     <form onSubmit={handleSubmit} className="mt-4 grid gap-3 sm:grid-cols-6">
       <div className="sm:col-span-2">
-        <div className="text-xs font-medium text-slate-600 mb-1">Start date</div>
+        <div className="text-xs font-medium text-slate-600 mb-1 dark:text-slate-400">Start date</div>
         <DateTimePicker showTime={false} value={start} onChange={setStart} />
       </div>
 
       <div className="sm:col-span-2">
-        <div className="text-xs font-medium text-slate-600 mb-1">End date</div>
+        <div className="text-xs font-medium text-slate-600 mb-1 dark:text-slate-400">End date</div>
         <DateTimePicker showTime={false} value={end} onChange={setEnd} />
       </div>
 
       <label className="sm:col-span-2">
-        <div className="text-xs font-medium text-slate-600">Product (optional)</div>
+        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Product (optional)</div>
         <select
           value={productId}
           onChange={(e) => setProductId(e.target.value)}

@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { formatMoney, formatDate } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, querySales } from "@/lib/pos";
 import { SalesFilterForm } from "@/app/(pos)/sales/SalesFilterForm";
+
+function toDateStr(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
 
 export const runtime = "nodejs";
 
@@ -24,6 +30,12 @@ export default async function SalesQueryPage({
   const startDate = typeof sp.start === "string" ? sp.start : "";
   const endDate = typeof sp.end === "string" ? sp.end : "";
   const productIdStr = typeof sp.productId === "string" ? sp.productId : "";
+
+  if (!startDate && !endDate) {
+    const today = new Date();
+    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    redirect(`/sales?start=${toDateStr(firstOfMonth)}&end=${toDateStr(today)}`);
+  }
   const productId = productIdStr ? Number(productIdStr) : undefined;
 
   const [products, rows] = await Promise.all([
@@ -71,10 +83,10 @@ export default async function SalesQueryPage({
               <Link
                 key={r.id}
                 href={`/sales/${r.id}`}
-                className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100"
+                className="block rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
               >
-                <div className="space-y-1 text-sm text-slate-600">
-                  <div>Date: {formatDate(r.sold_at)}</div>
+                <div className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <div>Date: {formatDate(r.sold_at, user.storeTimezone)}</div>
                   <div>Items: {r.item_count}</div>
                   <div>Revenue: {formatMoney(Number(r.total_revenue), user.storeCurrency)}</div>
                   <div>Profit: {formatMoney(Number(r.total_profit), user.storeCurrency)}</div>
@@ -86,7 +98,7 @@ export default async function SalesQueryPage({
         {/* Desktop table layout */}
         <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
           <table className="w-full min-w-[760px] text-sm">
-            <thead className="text-left text-xs text-slate-500">
+            <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="whitespace-nowrap py-2 pr-3">Date</th>
                 <th className="whitespace-nowrap py-2 pr-3">Items</th>
@@ -104,9 +116,9 @@ export default async function SalesQueryPage({
                 </tr>
               ) : (
                 rows.map((r: any) => (
-                  <tr key={r.id} className="border-t">
-                    <td className="py-2 pr-3 text-xs text-slate-600">
-                      {formatDate(r.sold_at)}
+                  <tr key={r.id} className="border-t dark:border-gray-700">
+                    <td className="py-2 pr-3 text-xs text-slate-600 dark:text-slate-400">
+                      {formatDate(r.sold_at, user.storeTimezone)}
                     </td>
                     <td className="py-2 pr-3">{r.item_count}</td>
                     <td className="py-2 pr-3">{formatMoney(Number(r.total_revenue), user.storeCurrency)}</td>

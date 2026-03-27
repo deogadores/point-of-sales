@@ -5,23 +5,6 @@ import { NotificationWatcher } from "@/app/(pos)/NotificationWatcher";
 
 export const runtime = "nodejs";
 
-const nav = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/products", label: "Products" },
-  { href: "/sales/new", label: "New sale" },
-  { href: "/sales", label: "Sales query" },
-  { href: "/reservations", label: "Reservations" },
-  {
-    label: "Manage",
-    children: [
-      { href: "/stock", label: "Stock" },
-      { href: "/reference/units", label: "Units" },
-      { href: "/users", label: "Users" },
-      { href: "/settings", label: "Settings" }
-    ]
-  }
-];
-
 export default async function PosLayout({
   children
 }: Readonly<{
@@ -29,8 +12,25 @@ export default async function PosLayout({
 }>) {
   const user = await requireAuth();
 
+  const manageChildren = [
+    { href: "/stock", label: "Stock" },
+    { href: "/reference/units", label: "Units" },
+    { href: "/users", label: "Users" },
+    { href: "/settings", label: "Settings" },
+    ...(user.role === "Owner" ? [{ href: "/audit-trail", label: "Audit Trail" }] : []),
+  ];
+
+  const nav = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/products", label: "Products" },
+    { href: "/sales/new", label: "New sale" },
+    { href: "/sales", label: "Sales query" },
+    { href: "/reservations", label: "Reservations" },
+    { label: "Manage", children: manageChildren },
+  ];
+
   return (
-    <div className="min-h-screen">
+    <div className="flex-1">
       <NotificationWatcher enabled={user.liveNotifications} />
       <PosHeader nav={nav} storeName={user.storeName} email={user.email} />
       <main className="mx-auto max-w-5xl p-3 sm:p-4">{children}</main>

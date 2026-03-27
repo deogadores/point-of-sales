@@ -156,7 +156,7 @@ export async function listRecentStockMovements(storeId: number, limit = 25) {
     .limit(limit);
 }
 
-export async function createSale(storeId: number, input: unknown) {
+export async function createSale(storeId: number, input: unknown, processedByName?: string) {
   const data = SaleInputSchema.parse(input);
 
   const productIds = [...new Set(data.items.map((i) => i.productId))];
@@ -189,7 +189,7 @@ export async function createSale(storeId: number, input: unknown) {
   return db.transaction(async (tx) => {
     const [sale] = await tx
       .insert(sales)
-      .values({ storeId, totalRevenue, totalProfit, ...(data.soldAt ? { soldAt: data.soldAt } : {}) })
+      .values({ storeId, totalRevenue, totalProfit, ...(data.soldAt ? { soldAt: data.soldAt } : {}), ...(processedByName ? { processedByName } : {}) })
       .returning({ id: sales.id });
     if (!sale) throw new Error("Failed to create sale.");
 
@@ -364,6 +364,8 @@ export async function getSaleDetail(storeId: number, saleId: number) {
   const [sale] = await db
     .select({
       id: sales.id,
+      reservation_id: sales.reservationId,
+      processed_by_name: sales.processedByName,
       sold_at: sales.soldAt,
       total_revenue: sales.totalRevenue,
       total_profit: sales.totalProfit,

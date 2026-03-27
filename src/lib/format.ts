@@ -8,22 +8,23 @@ export function formatMoney(n: number, currency = 'USD') {
   });
 }
 
-export function formatDate(dateString: string | null | undefined): string {
+export function formatDate(dateString: string | null | undefined, timezone = "UTC"): string {
   if (!dateString) return "";
-  const date = new Date(dateString);
+  // Stored dates have no timezone marker (SQLite datetime('now') → "YYYY-MM-DD HH:MM:SS",
+  // custom soldAt → "YYYY-MM-DDTHH:mm"). Both are UTC — append Z so JS parses them correctly.
+  const normalized = /Z|[+-]\d{2}:\d{2}$/.test(dateString)
+    ? dateString
+    : dateString.replace(" ", "T") + "Z";
+  const date = new Date(normalized);
   if (isNaN(date.getTime())) return String(dateString);
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = months[date.getMonth()];
-  const day = String(date.getDate()).padStart(2, "0");
-  const year = date.getFullYear();
-
-  let hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  const hoursStr = String(hours).padStart(2, "0");
-
-  return `${month}-${day}-${year} ${hoursStr}:${minutes} ${ampm}`;
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
 }

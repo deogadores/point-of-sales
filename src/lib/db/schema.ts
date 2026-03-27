@@ -6,7 +6,8 @@ export const stores = sqliteTable('stores', {
   name: text('name').notNull().unique(),
   slug: text('slug').notNull().unique(),
   inviteCode: text('invite_code').notNull().unique(),
-  currency: text('currency').notNull().default('USD'),
+  currency: text('currency').notNull().default('PHP'),
+  timezone: text('timezone').notNull().default('Asia/Manila'),
   liveNotifications: integer('live_notifications', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 })
@@ -18,6 +19,7 @@ export const storeMembers = sqliteTable('store_members', {
   name: text('name').notNull(),
   email: text('email').notNull(),
   role: text('role').notNull().default('Staff'),
+  isFounder: integer('is_founder', { mode: 'boolean' }).notNull().default(false),
   joinedAt: text('joined_at').notNull().default(sql`(datetime('now'))`),
 }, (table) => [
   unique().on(table.authUserId, table.storeId),
@@ -58,6 +60,8 @@ export const stockMovements = sqliteTable('stock_movements', {
 export const sales = sqliteTable('sales', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  reservationId: integer('reservation_id'),
+  processedByName: text('processed_by_name'),
   soldAt: text('sold_at').notNull().default(sql`(datetime('now'))`),
   totalRevenue: real('total_revenue').notNull(),
   totalProfit: real('total_profit').notNull(),
@@ -88,6 +92,7 @@ export const reservations = sqliteTable('reservations', {
   paymentProof: text('payment_proof'),
   paymentProofMime: text('payment_proof_mime'),
   notes: text('notes'),
+  processedByName: text('processed_by_name'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 })
@@ -100,6 +105,17 @@ export const reservationItems = sqliteTable('reservation_items', {
   quantity: real('quantity').notNull(),
   unitSalePrice: real('unit_sale_price').notNull(),
   subtotal: real('subtotal').notNull(),
+})
+
+export const auditLog = sqliteTable('audit_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  actorName: text('actor_name'),
+  action: text('action').notNull(),
+  entityType: text('entity_type'),
+  entityId: integer('entity_id'),
+  detail: text('detail'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 })
 
 // Type exports

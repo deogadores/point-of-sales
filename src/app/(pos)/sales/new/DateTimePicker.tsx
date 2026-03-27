@@ -77,7 +77,7 @@ export function DateTimePicker({
 
       <PopoverPanel
         anchor="bottom start"
-        className="z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg p-3 space-y-3"
+        className="z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg p-3 space-y-3 dark:border-gray-700 dark:bg-gray-900"
       >
         <DayPicker
           mode="single"
@@ -89,28 +89,28 @@ export function DateTimePicker({
             months: "flex flex-col",
             month: "space-y-2",
             month_caption: "flex justify-between items-center px-1 py-1",
-            caption_label: "text-sm font-semibold text-slate-800",
+            caption_label: "text-sm font-semibold text-slate-800 dark:text-slate-200",
             nav: "flex items-center gap-1",
             button_previous:
-              "p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition",
+              "p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition dark:hover:bg-gray-800 dark:text-slate-400 dark:hover:text-slate-200",
             button_next:
-              "p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition",
+              "p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition dark:hover:bg-gray-800 dark:text-slate-400 dark:hover:text-slate-200",
             weeks: "space-y-0.5",
             weekdays: "flex",
-            weekday: "w-9 text-center text-xs text-slate-400 font-medium py-1",
+            weekday: "w-9 text-center text-xs text-slate-400 font-medium py-1 dark:text-slate-500",
             week: "flex",
-            day: "w-9 h-9 flex items-center justify-center rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition cursor-pointer",
+            day: "w-9 h-9 flex items-center justify-center rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition cursor-pointer dark:text-slate-300 dark:hover:bg-gray-800",
             day_button: "w-full h-full flex items-center justify-center rounded-lg",
             selected: "!bg-indigo-600 !text-white font-semibold hover:!bg-indigo-700",
-            today: "font-semibold text-indigo-600",
-            outside: "text-slate-300",
+            today: "font-semibold text-indigo-600 dark:text-indigo-400",
+            outside: "text-slate-300 dark:text-slate-600",
             disabled: "opacity-40 cursor-not-allowed",
           }}
         />
 
         {showTime && (
-          <div className="border-t border-slate-100 pt-3">
-            <label className="text-xs font-medium text-slate-600">Time</label>
+          <div className="border-t border-slate-100 pt-3 dark:border-gray-700">
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Time</label>
             <input
               type="time"
               value={time}

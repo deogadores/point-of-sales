@@ -48,7 +48,7 @@ export function PaymentUpload({
       <input type="hidden" name="mime" ref={mimeRef} />
 
       <div
-        className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-400 transition"
+        className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-400 transition dark:border-gray-600 dark:hover:border-indigo-500"
         onClick={() => fileInputRef.current?.click()}
         onDrop={(e) => {
           e.preventDefault();
@@ -68,13 +68,13 @@ export function PaymentUpload({
           }}
         />
         {compressing ? (
-          <p className="text-sm text-slate-500">Compressing image…</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Compressing image…</p>
         ) : preview ? (
           <img src={preview} alt="Payment proof preview" className="max-h-56 mx-auto rounded-lg object-contain" />
         ) : (
           <div className="space-y-1">
-            <p className="text-sm text-slate-600 font-medium">Click or drag to upload your payment proof</p>
-            <p className="text-xs text-slate-400">Image will be compressed automatically before upload</p>
+            <p className="text-sm text-slate-600 font-medium dark:text-slate-300">Click or drag to upload your payment proof</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Image will be compressed automatically before upload</p>
           </div>
         )}
       </div>

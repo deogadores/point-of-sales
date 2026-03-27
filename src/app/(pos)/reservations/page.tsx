@@ -41,7 +41,7 @@ export default async function ReservationsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-sm font-medium">#{r.id} · {r.customer_name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{formatDate(String(r.created_at))}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{formatDate(String(r.created_at), user.storeTimezone)}</div>
                     {r.customer_email && <div className="text-xs text-slate-500">{r.customer_email}</div>}
                   </div>
                   <span className={`shrink-0 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_COLORS[r.status as ReservationStatus]}`}>
@@ -85,7 +85,7 @@ export default async function ReservationsPage() {
                         {STATUS_LABELS[r.status as ReservationStatus]}
                       </span>
                     </td>
-                    <td className="py-2 pr-4 text-slate-500">{formatDate(String(r.created_at))}</td>
+                    <td className="py-2 pr-4 text-slate-500">{formatDate(String(r.created_at), user.storeTimezone)}</td>
                     <td className="py-2">
                       <Link href={`/reservations/${r.id}`} className="btn btn-ghost px-3 py-1.5 text-xs">
                         View

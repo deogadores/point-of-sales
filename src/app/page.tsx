@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RequestAccessForm } from "./RequestAccessForm";
 import { getCurrentUser } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,11 @@ export default async function HomePage() {
   if (user) redirect("/dashboard");
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex flex-1 flex-col">
+      <div className="absolute top-3 right-3">
+        <ThemeToggle />
+      </div>
+
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
         <div className="max-w-md">
@@ -20,12 +25,12 @@ export default async function HomePage() {
             </svg>
           </div>
 
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Simple POS</h1>
-          <p className="mt-3 text-slate-500">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Simple POS</h1>
+          <p className="mt-3 text-slate-500 dark:text-slate-400">
             Manage products, track stock, record sales, and monitor profit — all in one place.
           </p>
 
-          <div className="mt-4 flex flex-wrap justify-center gap-3 text-sm text-slate-500">
+          <div className="mt-4 flex flex-wrap justify-center gap-3 text-sm text-slate-500 dark:text-slate-400">
             {["Products & pricing", "Stock tracking", "Sales & profit", "Reservations"].map((f) => (
               <span key={f} className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
@@ -46,11 +51,11 @@ export default async function HomePage() {
       </section>
 
       {/* Request Access */}
-      <section id="request-access" className="border-t bg-slate-50/80 px-6 py-16">
+      <section id="request-access" className="border-t bg-slate-50/80 px-6 py-16 dark:border-gray-700 dark:bg-gray-900/50">
         <div className="mx-auto max-w-md">
           <div className="mb-6 text-center">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900">Request access</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Request access</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Fill out the form and we&apos;ll send you a registration phrase if approved.
             </p>
           </div>
@@ -58,13 +63,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t px-6 py-5">
-        <div className="mx-auto flex max-w-md items-center justify-between text-xs text-slate-400">
-          <span className="font-semibold text-slate-600">Simple POS</span>
-          <span>&copy; {new Date().getFullYear()}</span>
-        </div>
-      </footer>
     </div>
   );
 }

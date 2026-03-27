@@ -1,9 +1,112 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { createSaleAction } from "@/app/(pos)/actions";
 import { formatMoney } from "@/lib/format";
 import { DateTimePicker } from "@/app/(pos)/sales/new/DateTimePicker";
+
+function ProductCombobox({
+  products,
+  value,
+  onChange,
+}: {
+  products: Product[];
+  value: number;
+  onChange: (id: number) => void;
+}) {
+  const selected = products.find((p) => p.id === value);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = query.trim()
+    ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
+    : products;
+
+  useEffect(() => {
+    if (!open) return;
+    function updatePosition() {
+      if (!inputRef.current) return;
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open]);
+
+  function handleBlur(e: React.FocusEvent) {
+    // Let the click on a list item fire first
+    setTimeout(() => {
+      if (!inputRef.current?.matches(":focus")) {
+        setOpen(false);
+        setQuery("");
+      }
+    }, 100);
+  }
+
+  function select(id: number) {
+    onChange(id);
+    setQuery("");
+    setOpen(false);
+  }
+
+  const dropdown =
+    open && filtered.length > 0 ? (
+      <ul
+        style={dropdownStyle}
+        className="max-h-60 overflow-auto rounded-lg border border-slate-200 bg-white text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900"
+      >
+        {filtered.map((p) => (
+          <li
+            key={p.id}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => select(p.id)}
+            className={`cursor-pointer px-3 py-2 hover:bg-indigo-50 dark:hover:bg-gray-700 ${
+              p.id === value ? "bg-indigo-50 font-medium dark:bg-gray-700" : ""
+            }`}
+          >
+            {p.name}
+            <span className="ml-2 text-xs text-slate-400">
+              stock {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+    ) : null;
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        className="field"
+        value={open ? query : (selected?.name ?? "")}
+        placeholder="Search product…"
+        onFocus={() => setOpen(true)}
+        onBlur={handleBlur}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+      />
+      {typeof document !== "undefined" && dropdown
+        ? createPortal(dropdown, document.body)
+        : null}
+    </>
+  );
+}
 
 type Product = {
   id: number;
@@ -60,18 +163,18 @@ export function SaleForm({ products, currency }: { products: Product[]; currency
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="text-xs font-medium text-slate-600">Transaction date</div>
-        <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+        <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium dark:border-gray-700">
           <button
             type="button"
             onClick={() => setUseCustomDate(false)}
-            className={`px-3 py-1.5 transition ${!useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+            className={`px-3 py-1.5 transition ${!useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-gray-800 dark:text-slate-300 dark:hover:bg-gray-700"}`}
           >
             Now
           </button>
           <button
             type="button"
             onClick={() => setUseCustomDate(true)}
-            className={`px-3 py-1.5 transition border-l border-slate-200 ${useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+            className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-gray-700 ${useCustomDate ? "bg-indigo-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-gray-800 dark:text-slate-300 dark:hover:bg-gray-700"}`}
           >
             Custom
           </button>
@@ -93,27 +196,21 @@ export function SaleForm({ products, currency }: { products: Product[]; currency
             const lineRevenue = unitSale * l.quantity;
             const lineProfit = (unitSale - unitCost) * l.quantity;
             return (
-              <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                 <div className="space-y-2">
                   <label>
                     <div className="text-xs font-medium text-slate-600">Product</div>
-                    <select
-                      className="field mt-1"
-                      value={l.productId}
-                      onChange={(e) => {
-                        const nextId = Number(e.target.value);
-                        setLines((prev) =>
-                          prev.map((x, i) => (i === idx ? { ...x, productId: nextId } : x))
-                        );
-                      }}
-                    >
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} • stock {Number(p.stock_qty).toFixed(2)}{" "}
-                          {p.unit_symbol ?? ""}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mt-1">
+                      <ProductCombobox
+                        products={products}
+                        value={l.productId}
+                        onChange={(nextId) =>
+                          setLines((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, productId: nextId } : x))
+                          )
+                        }
+                      />
+                    </div>
                   </label>
                   <label>
                     <div className="text-xs font-medium text-slate-600">Quantity</div>
@@ -181,23 +278,15 @@ export function SaleForm({ products, currency }: { products: Product[]; currency
                 return (
                   <tr key={idx} className="border-t">
                     <td className="py-2 pr-3">
-                      <select
-                        className="field"
+                      <ProductCombobox
+                        products={products}
                         value={l.productId}
-                        onChange={(e) => {
-                          const nextId = Number(e.target.value);
+                        onChange={(nextId) =>
                           setLines((prev) =>
                             prev.map((x, i) => (i === idx ? { ...x, productId: nextId } : x))
-                          );
-                        }}
-                      >
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} • stock {Number(p.stock_qty).toFixed(2)}{" "}
-                            {p.unit_symbol ?? ""}
-                          </option>
-                        ))}
-                      </select>
+                          )
+                        }
+                      />
                     </td>
                     <td className="py-2 pr-3">
                       <input

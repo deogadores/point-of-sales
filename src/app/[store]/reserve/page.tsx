@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { ReserveClient } from "@/app/[store]/reserve/ReserveClient";
+import { ReserveHeader } from "@/app/[store]/reserve/ReserveHeader";
 import { listProductsWithStock } from "@/lib/pos";
 import { db } from "@/lib/db";
 import { stores, reservations } from "@/lib/db/schema";
@@ -53,23 +54,21 @@ export default async function ReservePage({
   }));
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 p-3">
-          <div className="text-sm font-semibold">{storeRecord.name}</div>
-          <div className="text-xs text-slate-500">Reserve products online</div>
-        </div>
-      </header>
+    <div className="flex-1">
+      <ReserveHeader
+        left={<div className="text-sm font-semibold">{storeRecord.name}</div>}
+        right="Reserve products online"
+      />
       <main className="mx-auto max-w-5xl p-3 sm:p-4 space-y-4">
         {savedReservation && (
-          <Link href={`/${store}/reserve/${savedReservation.id}`} className="card flex items-center justify-between gap-3 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition">
+          <Link href={`/${store}/reserve/${savedReservation.id}`} className="card flex items-center justify-between gap-3 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition dark:border-indigo-900/50 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
             <div>
-              <div className="text-sm font-semibold text-indigo-800">You have an active reservation</div>
-              <div className="text-xs text-indigo-600 mt-0.5">
+              <div className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">You have an active reservation</div>
+              <div className="text-xs text-indigo-600 mt-0.5 dark:text-indigo-400">
                 #{savedReservation.id} · {STATUS_LABELS[savedReservation.status as ReservationStatus]}
               </div>
             </div>
-            <span className="text-xs text-indigo-500 shrink-0">View →</span>
+            <span className="text-xs text-indigo-500 shrink-0 dark:text-indigo-400">View →</span>
           </Link>
         )}
         <div className="card">
