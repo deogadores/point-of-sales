@@ -3,9 +3,9 @@
 import { redirect } from "next/navigation";
 import { login, logout, register, setupStore, joinStore } from "@/lib/auth";
 import { getSession } from "@/lib/auth/session";
-import { requestToolAccess } from "@/lib/auth/api-client";
+import { requestToolAccess, forgotPassword, resetPassword } from "@/lib/auth/api-client";
 
-export type AuthState = { error?: string };
+export type AuthState = { error?: string; success?: boolean };
 
 export async function loginAction(_: AuthState, formData: FormData): Promise<AuthState> {
   try {
@@ -53,6 +53,31 @@ export async function setupStoreAction(_: AuthState, formData: FormData): Promis
     return { error: e?.message ? String(e.message) : "Failed to create store." };
   }
   redirect("/dashboard");
+}
+
+export async function forgotPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "");
+  const result = await forgotPassword(email);
+  if (!result.success) {
+    return { error: result.error || "Failed to send reset email." };
+  }
+  return { success: true };
+}
+
+export async function resetPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
+  const token = String(formData.get("token") ?? "");
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirmPassword") ?? "");
+
+  if (password !== confirm) {
+    return { error: "Passwords do not match." };
+  }
+
+  const result = await resetPassword(token, password);
+  if (!result.success) {
+    return { error: result.error || "Failed to reset password." };
+  }
+  redirect("/login?reset=1");
 }
 
 export async function requestAccessAction(formData: FormData): Promise<AuthState> {

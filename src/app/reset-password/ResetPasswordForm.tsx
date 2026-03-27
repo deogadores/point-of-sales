@@ -3,44 +3,41 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useActionState } from "react";
-import { loginAction, type AuthState } from "@/app/auth/actions";
+import { resetPasswordAction, type AuthState } from "@/app/auth/actions";
+
+interface ResetPasswordFormProps {
+  token: string;
+}
 
 const initialState: AuthState = {};
 
-export function LoginForm() {
-  const [state, action, pending] = useActionState(loginAction, initialState);
+export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const [state, action, pending] = useActionState(resetPasswordAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="card">
-      <div className="text-xl font-semibold tracking-tight">Login</div>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Sign in to your store.</p>
+      <div className="text-xl font-semibold tracking-tight">Reset password</div>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Enter your new password below.</p>
 
-      {state.error ? (
+      {state?.error ? (
         <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-900/20 dark:text-rose-400">
           {state.error}
         </div>
       ) : null}
 
       <form action={action} className="mt-4 space-y-3">
-        <label className="block">
-          <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Email</div>
-          <input name="email" type="email" className="field" required />
-        </label>
+        <input type="hidden" name="token" value={token} />
 
         <div>
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Password</div>
-            <Link href="/forgot-password" className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 underline">
-              Forgot password?
-            </Link>
-          </div>
+          <div className="text-xs font-medium text-slate-600 dark:text-slate-400">New Password</div>
           <div className="relative mt-1">
             <input
               name="password"
               type={showPassword ? "text" : "password"}
               className="field pr-10"
               required
+              minLength={8}
             />
             <button
               type="button"
@@ -62,17 +59,20 @@ export function LoginForm() {
           </div>
         </div>
 
+        <label className="block">
+          <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Confirm Password</div>
+          <input name="confirmPassword" type="password" className="field" required minLength={8} />
+        </label>
+
         <button className="btn btn-primary w-full" disabled={pending}>
-          {pending ? "Signing in..." : "Sign in"}
+          {pending ? "Resetting..." : "Reset password"}
         </button>
       </form>
 
       <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-        New here?{" "}
-        <Link className="underline" href="/register">
-          Create an account
+        <Link className="underline" href="/login">
+          Back to sign in
         </Link>
-        .
       </p>
     </div>
   );

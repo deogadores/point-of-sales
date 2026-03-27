@@ -78,6 +78,35 @@ export async function verifyToken(token: string): Promise<VerifyResponse> {
   }
 }
 
+export async function forgotPassword(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3500'
+    const res = await fetch(`${AUTH_API_URL}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, redirectUrl: appUrl }),
+      cache: 'no-store',
+    })
+    return res.json()
+  } catch {
+    return { success: false, error: 'Failed to connect to auth service' }
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const res = await fetch(`${AUTH_API_URL}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+      cache: 'no-store',
+    })
+    return res.json()
+  } catch {
+    return { success: false, error: 'Failed to connect to auth service' }
+  }
+}
+
 export async function requestToolAccess(data: {
   name?: string
   email?: string
