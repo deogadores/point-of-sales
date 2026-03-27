@@ -7,28 +7,33 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Simple POS",
-  description: "A simple POS system with stock, sales, and profits.",
+  description:
+    "A multi-tenant point of sale web app for managing products, stock, sales, and customer reservations with role-based access control.",
   openGraph: {
     title: "Simple POS",
-    description: "A simple POS system with stock, sales, and profits.",
-    url: "https://simple-pos-rosy.vercel.app",
+    description:
+      "A multi-tenant point of sale web app for managing products, stock, sales, and customer reservations with role-based access control.",
+    url: "https://simple-pos.jdgadores.dev",
     siteName: "Simple POS",
     images: [
       {
-        url: "https://simple-pos-rosy.vercel.app/og-image.png",
+        url: "https://simple-pos.jdgadores.dev/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Simple POS",
+        alt: "Simple POS — multi-tenant point of sale app",
       },
     ],
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Simple POS",
-    description: "A simple POS system with stock, sales, and profits.",
-    images: ["https://simple-pos-rosy.vercel.app/og-image.png"],
+    description:
+      "A multi-tenant point of sale web app for managing products, stock, sales, and customer reservations with role-based access control.",
+    images: ["https://simple-pos.jdgadores.dev/og-image.png"],
   },
+  metadataBase: new URL("https://simple-pos.jdgadores.dev"),
 };
 
 const noFlashScript = `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`;
