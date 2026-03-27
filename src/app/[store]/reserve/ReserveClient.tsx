@@ -175,7 +175,7 @@ export function ReserveClient({
                   <img
                     src={p.image_url}
                     alt={p.name}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-64 object-cover"
                   />
                 )}
                 <div className="flex flex-col gap-3 p-3 flex-1">
