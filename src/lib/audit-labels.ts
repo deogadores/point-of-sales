@@ -3,6 +3,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "store.created": "Store created",
   "sale.created": "Sale created",
   "product.created": "Product created",
+  "product.updated": "Product updated",
   "unit.created": "Unit created",
   "unit.deleted": "Unit deleted",
   "stock.added": "Stock movement",

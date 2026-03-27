@@ -6,6 +6,7 @@ import { requireAuth, updateStoreCurrency, updateLiveNotifications, updateStoreT
 import {
   addStockMovement,
   createProduct,
+  updateProduct,
   createSale,
   createUnit,
   deleteUnit
@@ -58,6 +59,28 @@ export async function createProductAction(formData: FormData) {
     actorName: user.name,
     action: "product.created",
     entityType: "product",
+    detail: name,
+  });
+  revalidatePath("/products");
+  redirect("/products");
+}
+
+export async function updateProductAction(formData: FormData) {
+  const user = await requireAuth();
+  const productId = Number(formData.get("productId"));
+  const name = String(formData.get("name") ?? "");
+  await updateProduct(user.storeId, productId, {
+    name,
+    imageUrl: String(formData.get("imageUrl") ?? ""),
+    unitId: formData.get("unitId"),
+    unitCostPrice: formData.get("unitCostPrice"),
+    unitSalePrice: formData.get("unitSalePrice"),
+  });
+  await logAudit(user.storeId, {
+    actorName: user.name,
+    action: "product.updated",
+    entityType: "product",
+    entityId: productId,
     detail: name,
   });
   revalidatePath("/products");

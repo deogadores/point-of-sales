@@ -3,6 +3,7 @@ import { formatMoney } from "@/lib/format";
 import { requireAuth } from "@/lib/auth";
 import { listProductsWithStock, listUnits } from "@/lib/pos";
 import { ProductForm } from "./ProductForm";
+import { EditProductModal } from "./EditProductModal";
 
 export const runtime = "nodejs";
 
@@ -41,7 +42,7 @@ export default async function ProductsPage() {
             products.map((p) => {
               const unitProfit = Number(p.unit_sale_price) - Number(p.unit_cost_price);
               return (
-                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex gap-3">
+                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex gap-3 dark:border-gray-700 dark:bg-gray-800">
                   {p.image_url && (
                     <img
                       src={p.image_url}
@@ -49,14 +50,27 @@ export default async function ProductsPage() {
                       className="h-14 w-14 shrink-0 rounded-lg object-cover border border-slate-200"
                     />
                   )}
-                  <div className="min-w-0">
-                    <div className="font-medium">{p.name}</div>
-                    <div className="mt-1 space-y-1 text-sm text-slate-600">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium dark:text-slate-100">{p.name}</div>
+                    <div className="mt-1 space-y-1 text-sm text-slate-600 dark:text-slate-400">
                       <div>Unit: {p.unit_name} {p.unit_symbol ? `(${p.unit_symbol})` : ""}</div>
                       <div>Cost: {formatMoney(Number(p.unit_cost_price), user.storeCurrency)}</div>
                       <div>Sale: {formatMoney(Number(p.unit_sale_price), user.storeCurrency)}</div>
                       <div>Profit: {formatMoney(unitProfit, user.storeCurrency)}</div>
                       <div>Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}</div>
+                    </div>
+                    <div className="mt-2">
+                      <EditProductModal
+                        product={{
+                          id: p.id,
+                          name: p.name,
+                          image_url: p.image_url,
+                          unit_id: p.unit_id,
+                          unit_cost_price: Number(p.unit_cost_price),
+                          unit_sale_price: Number(p.unit_sale_price),
+                        }}
+                        units={units}
+                      />
                     </div>
                   </div>
                 </div>
@@ -76,12 +90,13 @@ export default async function ProductsPage() {
                 <th className="whitespace-nowrap py-2 pr-3">Sale</th>
                 <th className="whitespace-nowrap py-2 pr-3">Unit profit</th>
                 <th className="whitespace-nowrap py-2 pr-3">Stock</th>
+                <th className="whitespace-nowrap py-2 pr-3"></th>
               </tr>
             </thead>
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-2 text-slate-600">
+                  <td colSpan={8} className="py-2 text-slate-600">
                     No products yet.
                   </td>
                 </tr>
@@ -110,6 +125,19 @@ export default async function ProductsPage() {
                       <td className="py-2 pr-3">{formatMoney(unitProfit, user.storeCurrency)}</td>
                       <td className="py-2 pr-3">
                         {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
+                      </td>
+                      <td className="py-2 pr-3">
+                        <EditProductModal
+                          product={{
+                            id: p.id,
+                            name: p.name,
+                            image_url: p.image_url,
+                            unit_id: p.unit_id,
+                            unit_cost_price: Number(p.unit_cost_price),
+                            unit_sale_price: Number(p.unit_sale_price),
+                          }}
+                          units={units}
+                        />
                       </td>
                     </tr>
                   );

@@ -117,6 +117,22 @@ export async function createProduct(storeId: number, input: unknown) {
   });
 }
 
+export async function updateProduct(storeId: number, productId: number, input: unknown) {
+  const data = ProductSchema.omit({ initialStock: true }).parse(input);
+  const [updated] = await db
+    .update(products)
+    .set({
+      name: data.name,
+      imageUrl: data.imageUrl?.length ? data.imageUrl : null,
+      unitId: data.unitId,
+      unitCostPrice: data.unitCostPrice,
+      unitSalePrice: data.unitSalePrice,
+    })
+    .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
+    .returning({ id: products.id });
+  if (!updated) throw new Error("Product not found.");
+}
+
 export async function addStockMovement(storeId: number, input: unknown) {
   const data = StockMovementSchema.parse(input);
   if (!Number.isFinite(data.quantity) || data.quantity === 0) {
