@@ -1,6 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { auditLog } from "@/lib/db/schema";
+export { ACTION_LABELS } from "@/lib/audit-labels";
 
 export type AuditEntry = {
   actorName?: string;
@@ -25,27 +26,24 @@ export async function logAudit(storeId: number, entry: AuditEntry): Promise<void
   }
 }
 
-export async function queryAuditLog(storeId: number, limit = 300) {
+export type AuditFilters = {
+  start?: string; // YYYY-MM-DD
+  end?: string;   // YYYY-MM-DD
+  action?: string;
+};
+
+export async function queryAuditLog(storeId: number, filters: AuditFilters = {}, limit = 500) {
+  const conditions = [
+    eq(auditLog.storeId, storeId),
+    ...(filters.start ? [gte(auditLog.createdAt, `${filters.start} 00:00:00`)] : []),
+    ...(filters.end   ? [lte(auditLog.createdAt, `${filters.end} 23:59:59`)]   : []),
+    ...(filters.action ? [eq(auditLog.action, filters.action)]                 : []),
+  ];
   return db
     .select()
     .from(auditLog)
-    .where(eq(auditLog.storeId, storeId))
+    .where(and(...conditions))
     .orderBy(desc(auditLog.createdAt), desc(auditLog.id))
     .limit(limit);
 }
 
-export const ACTION_LABELS: Record<string, string> = {
-  "user.joined": "User joined",
-  "store.created": "Store created",
-  "sale.created": "Sale created",
-  "product.created": "Product created",
-  "unit.created": "Unit created",
-  "unit.deleted": "Unit deleted",
-  "stock.added": "Stock movement",
-  "settings.updated": "Settings updated",
-  "reservation.created": "Reservation created",
-  "reservation.status_changed": "Reservation status changed",
-  "reservation.payment_proof_uploaded": "Payment proof uploaded",
-  "reservation.proof_downloaded": "Payment proof downloaded",
-  "user.role_changed": "User role changed",
-};

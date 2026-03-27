@@ -1,0 +1,16 @@
+export const ACTION_LABELS: Record<string, string> = {
+  "user.joined": "User joined",
+  "store.created": "Store created",
+  "sale.created": "Sale created",
+  "product.created": "Product created",
+  "unit.created": "Unit created",
+  "unit.deleted": "Unit deleted",
+  "stock.added": "Stock movement",
+  "settings.updated": "Settings updated",
+  "settings.payment_link_updated": "Payment link updated",
+  "reservation.created": "Reservation created",
+  "reservation.status_changed": "Reservation status changed",
+  "reservation.payment_proof_uploaded": "Payment proof uploaded",
+  "reservation.proof_downloaded": "Payment proof downloaded",
+  "user.role_changed": "User role changed",
+};

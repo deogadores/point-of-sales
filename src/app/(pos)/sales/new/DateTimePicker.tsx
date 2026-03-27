@@ -33,6 +33,41 @@ function nowTime(): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+const HOURS   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")); // 01–12
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));     // 00–59
+
+function TimeSelect({ value, onChange }: { value: string; onChange: (t: string) => void }) {
+  // value is 24h "HH:mm"
+  const [rawH, rawM] = value.split(":").map(Number);
+  const ampm   = rawH < 12 ? "AM" : "PM";
+  const hour12 = String(rawH % 12 || 12).padStart(2, "0");
+  const minute = String(rawM).padStart(2, "0");
+
+  function emit(h12: string, m: string, period: string) {
+    let h24 = Number(h12) % 12;
+    if (period === "PM") h24 += 12;
+    onChange(`${String(h24).padStart(2, "0")}:${m}`);
+  }
+
+  const sel = "field py-1 px-2 text-sm w-full";
+
+  return (
+    <div className="flex items-center gap-1">
+      <select className={sel} value={hour12} onChange={(e) => emit(e.target.value, minute, ampm)}>
+        {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+      </select>
+      <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+      <select className={sel} value={minute} onChange={(e) => emit(hour12, e.target.value, ampm)}>
+        {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
+      </select>
+      <select className={sel} value={ampm} onChange={(e) => emit(hour12, minute, e.target.value)}>
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+  );
+}
+
 export function DateTimePicker({
   value,
   onChange,
@@ -110,13 +145,8 @@ export function DateTimePicker({
 
         {showTime && (
           <div className="border-t border-slate-100 pt-3 dark:border-gray-700">
-            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Time</label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              className="field mt-1 w-full"
-            />
+            <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Time</div>
+            <TimeSelect value={time} onChange={handleTimeChange} />
           </div>
         )}
       </PopoverPanel>

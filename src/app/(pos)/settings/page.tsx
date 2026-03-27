@@ -163,6 +163,32 @@ export default async function SettingsPage() {
           </label>
         </div>
 
+        {isOwner && (
+          <div className="card space-y-4">
+            <div>
+              <div className="text-sm font-semibold">Payment QR / Share link</div>
+              <p className="mt-1 text-xs text-slate-500">
+                Shown to customers on the reservation page when waiting for payment. Paste a GCash QR link, payment portal URL, or any share link.
+              </p>
+            </div>
+            <label className="block max-w-sm">
+              <div className="text-xs font-medium text-slate-600">Link URL</div>
+              <input
+                type="url"
+                name="paymentLink"
+                defaultValue={user.storePaymentLink ?? ""}
+                placeholder="https://..."
+                className="field mt-1"
+              />
+            </label>
+            {user.storePaymentLink && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Current: <a href={user.storePaymentLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline dark:text-indigo-400 break-all">{user.storePaymentLink}</a>
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-end">
           <button className="btn btn-primary">Save settings</button>
         </div>

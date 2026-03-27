@@ -35,6 +35,7 @@ export type CurrentUser = {
   storeSlug: string;
   storeCurrency: string;
   storeTimezone: string;
+  storePaymentLink: string | null;
   liveNotifications: boolean;
   name: string;
   email: string;
@@ -50,6 +51,7 @@ async function lookupStoreMember(authUserId: string) {
       storeSlug: stores.slug,
       storeCurrency: stores.currency,
       storeTimezone: stores.timezone,
+      storePaymentLink: stores.paymentLink,
       liveNotifications: stores.liveNotifications,
       name: storeMembers.name,
       email: storeMembers.email,
@@ -220,6 +222,10 @@ export async function updateStoreCurrency(storeId: number, currency: string) {
 
 export async function updateStoreTimezone(storeId: number, timezone: string) {
   await db.update(stores).set({ timezone }).where(eq(stores.id, storeId));
+}
+
+export async function updateStorePaymentLink(storeId: number, paymentLink: string | null) {
+  await db.update(stores).set({ paymentLink }).where(eq(stores.id, storeId));
 }
 
 export async function updateLiveNotifications(storeId: number, enabled: boolean) {

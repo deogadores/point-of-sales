@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAuth } from "@/lib/auth";
 import { queryAuditLog, ACTION_LABELS } from "@/lib/audit";
 import { formatDate } from "@/lib/format";
+import { AuditFilterForm } from "@/app/(pos)/audit-trail/AuditFilterForm";
 
 export const runtime = "nodejs";
 
@@ -11,23 +12,44 @@ const ENTITY_HREF: Record<string, (id: number) => string> = {
   reservation: (id) => `/reservations/${id}`,
 };
 
-export default async function AuditTrailPage() {
+function todayInTimezone(tz: string): string {
+  // en-CA locale formats as YYYY-MM-DD
+  return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
+}
+
+export default async function AuditTrailPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireAuth();
   if (user.role !== "Owner") redirect("/dashboard");
 
-  const entries = await queryAuditLog(user.storeId);
+  const sp = await searchParams;
+  const today = todayInTimezone(user.storeTimezone);
+  const start  = typeof sp.start  === "string" ? sp.start  : today;
+  const end    = typeof sp.end    === "string" ? sp.end    : today;
+  const action = typeof sp.action === "string" ? sp.action : "";
+
+  const entries = await queryAuditLog(user.storeId, {
+    start,
+    end,
+    action: action || undefined,
+  });
 
   return (
     <div className="space-y-4">
       <div className="card">
         <div className="text-sm font-semibold">Audit Trail</div>
         <p className="mt-1 text-xs text-slate-500">
-          All recorded activity for {user.storeName}. Showing the last {entries.length} entries.
+          All recorded activity for {user.storeName}. {entries.length} {entries.length === 1 ? "entry" : "entries"} found.
         </p>
       </div>
 
+      <AuditFilterForm start={start} end={end} action={action} />
+
       {entries.length === 0 ? (
-        <div className="card text-sm text-slate-500">No activity recorded yet.</div>
+        <div className="card text-sm text-slate-500 dark:text-slate-400">No activity for the selected filters.</div>
       ) : (
         <>
           {/* Mobile card layout */}
@@ -57,7 +79,7 @@ export default async function AuditTrailPage() {
 
           {/* Desktop table layout */}
           <div className="hidden w-full overflow-x-auto no-scrollbar md:block">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full text-sm">
               <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="whitespace-nowrap py-2 pr-4">Date</th>
@@ -77,7 +99,7 @@ export default async function AuditTrailPage() {
                         {formatDate(e.createdAt, user.storeTimezone)}
                       </td>
                       <td className="py-2 pr-4 text-slate-700 dark:text-slate-300">
-                        {e.actorName ?? <span className="text-slate-400 italic">Customer</span>}
+                        {e.actorName ?? <span className="text-slate-400 dark:text-slate-500 italic">Customer</span>}
                       </td>
                       <td className="py-2 pr-4 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
                         {label}

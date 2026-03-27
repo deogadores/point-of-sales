@@ -34,7 +34,7 @@ export default async function ReservationStatusPage({
   const reservationId = Number(id);
   if (!store || !reservationId) notFound();
 
-  const [storeRow] = await db.select({ id: stores.id, currency: stores.currency, timezone: stores.timezone }).from(stores).where(eq(stores.slug, store)).limit(1);
+  const [storeRow] = await db.select({ id: stores.id, currency: stores.currency, timezone: stores.timezone, paymentLink: stores.paymentLink }).from(stores).where(eq(stores.slug, store)).limit(1);
   if (!storeRow) notFound();
 
   const data = await getReservationForStore(storeRow.id, reservationId);
@@ -127,11 +127,31 @@ export default async function ReservationStatusPage({
         {/* Payment section */}
         {status === "waiting_for_payment" && (
           <div className="card space-y-3">
-            <div className="font-semibold text-sm">Upload payment proof</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Please complete your payment and upload a screenshot or photo of your proof of payment below.
-            </p>
-            <PaymentUpload storeSlug={store} reservationId={Number(reservation.id)} />
+            <div className="font-semibold text-sm">Complete your payment</div>
+            {storeRow.paymentLink ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-900/20">
+                <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Payment instructions</p>
+                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                  Please send your payment using the link below, then upload your proof of payment.
+                </p>
+                <a
+                  href={storeRow.paymentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition"
+                >
+                  Open payment link →
+                </a>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Please complete your payment and upload a screenshot or photo of your proof of payment below.
+              </p>
+            )}
+            <div className="border-t border-slate-100 pt-3 dark:border-gray-700">
+              <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Upload payment proof</div>
+              <PaymentUpload storeSlug={store} reservationId={Number(reservation.id)} />
+            </div>
           </div>
         )}
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAuth, updateStoreCurrency, updateLiveNotifications, updateStoreTimezone, renameStore, changeUserRole } from "@/lib/auth";
+import { requireAuth, updateStoreCurrency, updateLiveNotifications, updateStoreTimezone, updateStorePaymentLink, renameStore, changeUserRole } from "@/lib/auth";
 import {
   addStockMovement,
   createProduct,
@@ -176,6 +176,14 @@ export async function updateSettingsAction(formData: FormData) {
   if (user.role === "Owner") {
     const newName = String(formData.get("storeName") ?? "").trim();
     if (newName.length >= 2) await renameStore(user.storeId, newName);
+    const paymentLink = String(formData.get("paymentLink") ?? "").trim() || null;
+    await updateStorePaymentLink(user.storeId, paymentLink);
+    await logAudit(user.storeId, {
+      actorName: user.name,
+      action: "settings.payment_link_updated",
+      entityType: "settings",
+      detail: paymentLink ? `Set to: ${paymentLink}` : "Cleared",
+    });
   }
   await logAudit(user.storeId, {
     actorName: user.name,

@@ -8,6 +8,7 @@ export const stores = sqliteTable('stores', {
   inviteCode: text('invite_code').notNull().unique(),
   currency: text('currency').notNull().default('PHP'),
   timezone: text('timezone').notNull().default('Asia/Manila'),
+  paymentLink: text('payment_link'),
   liveNotifications: integer('live_notifications', { mode: 'boolean' }).notNull().default(true),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 })

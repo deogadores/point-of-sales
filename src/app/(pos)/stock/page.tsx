@@ -70,18 +70,18 @@ export default async function StockPage() {
         </form>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="space-y-4">
         <div className="card">
           <div className="text-sm font-semibold">Current stock</div>
           {/* Mobile card layout */}
           <div className="mt-3 space-y-2 md:hidden">
             {products.length === 0 ? (
-              <div className="py-2 text-sm text-slate-600">No products yet.</div>
+              <div className="py-2 text-sm text-slate-600 dark:text-slate-400">No products yet.</div>
             ) : (
               products.map((p) => (
-                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div key={p.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                   <div className="font-medium">{p.name}</div>
-                  <div className="mt-1 text-sm text-slate-600">
+                  <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                     Stock: {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
                   </div>
                 </div>
@@ -90,8 +90,8 @@ export default async function StockPage() {
           </div>
           {/* Desktop table layout */}
           <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
-            <table className="w-full min-w-[520px] text-sm">
-              <thead className="text-left text-xs text-slate-500">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="whitespace-nowrap py-2 pr-3">Product</th>
                   <th className="whitespace-nowrap py-2 pr-3">Stock</th>
@@ -100,13 +100,13 @@ export default async function StockPage() {
               <tbody>
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className="py-2 text-slate-600">
+                    <td colSpan={2} className="py-2 text-slate-600 dark:text-slate-400">
                       No products yet.
                     </td>
                   </tr>
                 ) : (
                   products.map((p) => (
-                    <tr key={p.id} className="border-t">
+                    <tr key={p.id} className="border-t dark:border-gray-700">
                       <td className="py-2 pr-3 font-medium">{p.name}</td>
                       <td className="py-2 pr-3">
                         {Number(p.stock_qty).toFixed(2)} {p.unit_symbol ?? ""}
@@ -124,12 +124,12 @@ export default async function StockPage() {
           {/* Mobile card layout */}
           <div className="mt-3 space-y-2 md:hidden">
             {recent.length === 0 ? (
-              <div className="py-2 text-sm text-slate-600">No movements yet.</div>
+              <div className="py-2 text-sm text-slate-600 dark:text-slate-400">No movements yet.</div>
             ) : (
               recent.map((r) => (
-                <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                   <div className="font-medium">{r.product_name}</div>
-                  <div className="mt-1 space-y-1 text-sm text-slate-600">
+                  <div className="mt-1 space-y-1 text-sm text-slate-600 dark:text-slate-400">
                     <div>Date: {formatDate(r.created_at, user.storeTimezone)}</div>
                     <div>
                       Qty: {Number(r.quantity).toFixed(2)} {r.unit_symbol ?? ""}
@@ -142,8 +142,8 @@ export default async function StockPage() {
           </div>
           {/* Desktop table layout */}
           <div className="mt-3 hidden w-full overflow-x-auto no-scrollbar md:block">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="text-left text-xs text-slate-500">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="whitespace-nowrap py-2 pr-3">Date</th>
                   <th className="whitespace-nowrap py-2 pr-3">Product</th>
@@ -154,21 +154,21 @@ export default async function StockPage() {
               <tbody>
                 {recent.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-2 text-slate-600">
+                    <td colSpan={4} className="py-2 text-slate-600 dark:text-slate-400">
                       No movements yet.
                     </td>
                   </tr>
                 ) : (
                   recent.map((r) => (
-                    <tr key={r.id} className="border-t">
-                      <td className="py-2 pr-3 text-xs text-slate-600">
+                    <tr key={r.id} className="border-t dark:border-gray-700">
+                      <td className="py-2 pr-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {formatDate(r.created_at, user.storeTimezone)}
                       </td>
                       <td className="py-2 pr-3 font-medium">{r.product_name}</td>
-                      <td className="py-2 pr-3">
+                      <td className="py-2 pr-3 whitespace-nowrap">
                         {Number(r.quantity).toFixed(2)} {r.unit_symbol ?? ""}
                       </td>
-                      <td className="py-2 pr-3">{r.reason ?? ""}</td>
+                      <td className="py-2 pr-3 text-slate-600 dark:text-slate-400">{r.reason ?? "—"}</td>
                     </tr>
                   ))
                 )}
